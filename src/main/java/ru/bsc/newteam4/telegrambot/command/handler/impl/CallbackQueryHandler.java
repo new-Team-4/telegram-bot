@@ -161,12 +161,6 @@ public class CallbackQueryHandler implements UpdateHandler {
                     .text("Введите новый текст поста")
                     .build()
             );
-        } else if (query.getData().startsWith("discuss_")) {
-            final Knowledge knowledge = repository.getById(getKnowledgeId(query.getData()));
-            //TODO
-            return List.of(
-                new AnswerCallbackQuery(query.getId())
-            );
         } else if (query.getData().startsWith("remove_")) {
             final String id = getKnowledgeId(query.getData());
             repository.remove(id);
