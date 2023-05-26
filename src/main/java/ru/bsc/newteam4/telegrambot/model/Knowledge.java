@@ -62,6 +62,12 @@ public class Knowledge {
 
     @JsonIgnore
     public String getPreviewText() {
-        return text.substring(0, Math.min(25, text.length()));
+        final int maxLength = 30;
+        final String firstRow = text.split("\n")[0];
+        if (firstRow.length() <= maxLength) {
+            return firstRow;
+        } else {
+            return firstRow.substring(0, maxLength) + "...";
+        }
     }
 }
