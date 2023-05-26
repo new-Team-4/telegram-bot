@@ -8,7 +8,7 @@ import java.util.List;
 public interface KnowledgeRepository {
 
     void loadFromMemory();
-`
+
     Knowledge getById(String id);
 
     List<Knowledge> searchByHashtag(String hashtag);
