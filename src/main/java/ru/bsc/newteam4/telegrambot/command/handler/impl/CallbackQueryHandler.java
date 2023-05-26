@@ -20,11 +20,7 @@ import ru.bsc.newteam4.telegrambot.model.PublishContext;
 import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -166,6 +162,12 @@ public class CallbackQueryHandler implements UpdateHandler {
                     .chatId(query.getMessage().getChatId())
                     .text("Введите новый текст поста")
                     .build()
+            );
+        } else if (query.getData().startsWith("discuss_")) {
+            final Knowledge knowledge = repository.getById(getKnowledgeId(query.getData()));
+            //TODO
+            return List.of(
+                new AnswerCallbackQuery(query.getId())
             );
         } else if (query.getData().startsWith("remove_")) {
             final String id = getKnowledgeId(query.getData());
