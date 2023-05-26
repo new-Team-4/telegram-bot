@@ -97,7 +97,7 @@ public class PlainMessageHandler implements UpdateHandler {
                     methods = List.of(
                         SendMessage.builder()
                             .chatId(update.getMessage().getChatId())
-                            .text("Ничего не найдено :( ")
+                            .text("Ничего не найдено ¯\\_(ツ)_/¯")
                             .build()
                     );
                 } else {
