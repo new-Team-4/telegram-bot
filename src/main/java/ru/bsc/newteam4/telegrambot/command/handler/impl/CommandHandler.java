@@ -48,6 +48,22 @@ public class CommandHandler implements UpdateHandler {
                 message.setReplyMarkup(new InlineKeyboardMarkup(keyboard));
                 return List.of(message);
             }
+            case "publish": {
+                final List<Category> categories = menu.getCategories();
+                final List<List<InlineKeyboardButton>> keyboard = IntStream.range(0, categories.size())
+                    .mapToObj(i -> InlineKeyboardButton.builder()
+                        .text(categories.get(i).getName())
+                        .callbackData("publish_" + i)
+                        .build()
+                    )
+                    .map(List::of)
+                    .toList();
+                final SendMessage message = new SendMessage();
+                message.setChatId(update.getMessage().getChatId());
+                message.setText(menu.getMessage());
+                message.setReplyMarkup(new InlineKeyboardMarkup(keyboard));
+                return List.of(message);
+            }
             default: {
                 return List.of();
             }

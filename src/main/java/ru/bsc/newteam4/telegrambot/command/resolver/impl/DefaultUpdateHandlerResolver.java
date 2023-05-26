@@ -41,7 +41,7 @@ public class DefaultUpdateHandlerResolver implements UpdateHandlerResolver {
 
     private boolean isHashTag(Message message) {
         final String text = message.getText();
-        if (message.getEntities().size() == 0 || message.getEntities().size() > 1) {
+        if (message.getEntities() == null || message.getEntities().size() == 0 || message.getEntities().size() > 1) {
             return false;
         }
         final MessageEntity tagEntity = message.getEntities()

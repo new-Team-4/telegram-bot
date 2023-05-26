@@ -14,7 +14,7 @@ public class Knowledge {
     private String text;
     private List<MessageEntity> messageEntities;
     private List<String> hashtags;
-    private Long likes;
+    private Long likes = 0L;
     private LocalDateTime creationDate;
 
 }

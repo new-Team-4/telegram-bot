@@ -13,17 +13,24 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import ru.bsc.newteam4.telegrambot.command.UpdateCategory;
 import ru.bsc.newteam4.telegrambot.command.handler.UpdateHandler;
 import ru.bsc.newteam4.telegrambot.model.Category;
+import ru.bsc.newteam4.telegrambot.model.Knowledge;
 import ru.bsc.newteam4.telegrambot.model.Menu;
+import ru.bsc.newteam4.telegrambot.model.PublishContext;
+import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
+import ru.bsc.newteam4.telegrambot.storage.Storage;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 @Slf4j
 @RequiredArgsConstructor
 public class CallbackQueryHandler implements UpdateHandler {
+
     private final Menu menu;
+    private final Map<Long, PublishContext> readyChatToPublishMap;
 
     @Override
     public UpdateCategory getCategory() {
@@ -39,6 +46,31 @@ public class CallbackQueryHandler implements UpdateHandler {
                 final SendMessage message = new SendMessage();
                 message.setChatId(update.getCallbackQuery().getMessage().getChatId());
                 message.setText("???");
+                return List.of(message);
+            } else {
+                final List<Category> categories = category.getCategories();
+                final List<List<InlineKeyboardButton>> keyboard = IntStream.range(0, categories.size())
+                    .mapToObj(i -> InlineKeyboardButton.builder()
+                        .text(categories.get(i).getName())
+                        .callbackData(query.getData() + "_" + i)
+                        .build()
+                    )
+                    .map(List::of)
+                    .toList();
+                final AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery(query.getId());
+                final EditMessageReplyMarkup edit = new EditMessageReplyMarkup();
+                edit.setChatId(query.getMessage().getChatId());
+                edit.setMessageId(query.getMessage().getMessageId());
+                edit.setReplyMarkup(new InlineKeyboardMarkup(keyboard));
+                return List.of(answerCallbackQuery, edit);
+            }
+        } else if (query.getData().startsWith("publish_")) {
+            final Category category = getByIndexes(getIndexes(query.getData()));
+            if (category.isTerminal()) {
+                readyChatToPublishMap.put(update.getCallbackQuery().getMessage().getChatId(), new PublishContext(category));
+                final SendMessage message = new SendMessage();
+                message.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                message.setText(String.format("Вы выбрали категорию %s, ваша публикация будет размещена в этой категории. Пожалуйста, напишите Ваш текст ниже\n", category.getName()));
                 return List.of(message);
             } else {
                 final List<Category> categories = category.getCategories();
