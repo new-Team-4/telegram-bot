@@ -7,6 +7,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.EntityType;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.bsc.newteam4.telegrambot.command.UpdateCategory;
 import ru.bsc.newteam4.telegrambot.command.handler.UpdateHandler;
 import ru.bsc.newteam4.telegrambot.model.Knowledge;
@@ -40,20 +42,17 @@ public class PlainMessageHandler implements UpdateHandler {
             knowledge.setText(text);
             knowledge.setMessageEntities(update.getMessage().getEntities());
             knowledge.setCategory(publishContext.getCategory());
-            knowledge.setHashtags(extractHashTags(text, update.getMessage().getEntities()));
+            knowledge.setHashtags(extractHashTags(update.getMessage().getEntities()));
             knowledgeRepository.save(knowledge);
             readyChatToPublishMap.remove(chatId);
 
-            final SendMessage sendMessage = new SendMessage();
-            sendMessage.setText("Ваше сообщение опубликовано!");
-            sendMessage.setChatId(update.getMessage().getChatId());
-            return List.of(sendMessage);
+            return List.of(toMessage(knowledge));
         } else {
             return List.of();
         }
     }
 
-    private List<String> extractHashTags(String text, List<MessageEntity> entities) {
+    private List<String> extractHashTags(List<MessageEntity> entities) {
         if (entities == null) {
             return List.of();
         }
@@ -66,5 +65,28 @@ public class PlainMessageHandler implements UpdateHandler {
     @Override
     public void handleException(Update update, Exception exception) {
 
+    }
+
+    private SendMessage toMessage(Knowledge knowledge) {
+        final SendMessage message = new SendMessage();
+        message.setText(knowledge.getText());
+        message.setEntities(knowledge.getMessageEntities());
+        message.setReplyMarkup(new InlineKeyboardMarkup(List.of(
+            List.of(
+                InlineKeyboardButton.builder()
+                    .callbackData("like_" + knowledge.getId())
+                    .text("❤️")
+                    .build(),
+                InlineKeyboardButton.builder()
+                    .callbackData("discuss_" + knowledge.getId())
+                    .text("\uD83D\uDCAC")
+                    .build(),
+                InlineKeyboardButton.builder()
+                    .callbackData("edit_" + knowledge.getId())
+                    .text("✏️")
+                    .build()
+            )
+        )));
+        return message;
     }
 }
