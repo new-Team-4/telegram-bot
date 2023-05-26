@@ -15,6 +15,7 @@ import ru.bsc.newteam4.telegrambot.command.handler.UpdateHandler;
 import ru.bsc.newteam4.telegrambot.model.Category;
 import ru.bsc.newteam4.telegrambot.model.Menu;
 import ru.bsc.newteam4.telegrambot.model.PublishContext;
+import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -29,6 +30,7 @@ public class CallbackQueryHandler implements UpdateHandler {
     private static final String CATEGORY_ROOT = "category_root";
 
     private final Menu menu;
+    private final KnowledgeRepository repository;
     private final Map<Long, PublishContext> readyChatToPublishMap;
 
     @Override
