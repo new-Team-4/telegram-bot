@@ -70,7 +70,7 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
         if (value.getId() != null && storage.get(value.getId()) != null) {
             final Knowledge knowledge = storage.get(value.getId());
             knowledge.copy(value);
-
+            storage.remove(value.getId());
         } else {
             value.setId(UUID.randomUUID().toString());
             value.setCreationDate(LocalDateTime.now());
