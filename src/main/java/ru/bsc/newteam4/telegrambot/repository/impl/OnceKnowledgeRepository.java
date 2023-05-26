@@ -1,11 +1,20 @@
 package ru.bsc.newteam4.telegrambot.repository.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import lombok.RequiredArgsConstructor;
+import ru.bsc.newteam4.telegrambot.config.StorageProperties;
 import ru.bsc.newteam4.telegrambot.model.Category;
 import ru.bsc.newteam4.telegrambot.model.Knowledge;
 import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -19,12 +28,28 @@ import static java.util.Comparator.comparingLong;
 @RequiredArgsConstructor
 public class OnceKnowledgeRepository implements KnowledgeRepository {
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper()
+        .registerModules(new JSR310Module())
+        .enable(SerializationFeature.INDENT_OUTPUT);
     private final Map<String, Knowledge> storage = new HashMap<>();
+    private final StorageProperties storageProperties;
 
     @Override
     public void loadFromMemory() {
-
+        try {
+            final Path storageLocation = Paths.get(storageProperties.getLocation());
+            if (!Files.exists(storageLocation)) {
+                Files.createDirectory(storageLocation);
+            }
+            try (final DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(storageProperties.getLocation()), "*.json")) {
+                for (Path path : stream) {
+                    final Knowledge knowledge = mapper.readValue(path.toFile(), Knowledge.class);
+                    storage.put(knowledge.getId(), knowledge);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -80,6 +105,13 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
     }
 
     private synchronized void saveToFiles() {
-
+        try {
+            for (Knowledge knowledge : storage.values()) {
+                final Path path = Path.of(storageProperties.getLocation(), knowledge.getId());
+                mapper.writeValue(path.toFile(), knowledge);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

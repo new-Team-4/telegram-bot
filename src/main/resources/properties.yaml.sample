@@ -1,5 +1,5 @@
 storageProperties:
-  location: /knowledges/
+  location: knowledges
 telegramProperties:
   botName: test-bot
   token:

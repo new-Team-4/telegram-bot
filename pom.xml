@@ -16,6 +16,7 @@
         <lombok.version>1.18.28</lombok.version>
         <logback.version>1.4.7</logback.version>
         <telegrambots.version>6.5.0</telegrambots.version>
+        <jackson-datatype-jsr310.version>2.15.1</jackson-datatype-jsr310.version>
     </properties>
 
     <dependencies>
@@ -40,5 +41,11 @@
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${jackson-datatype-jsr310.version}</version>
+        </dependency>
+
     </dependencies>
 </project>
