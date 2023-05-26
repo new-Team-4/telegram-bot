@@ -2,11 +2,46 @@ telegramProperties:
   botName: test-bot
   token:
   menu:
-    message:
+    message: 'Категории'
     categories:
-      - name: Корневая категория
+      - name: Административка
         categories:
-          - name: 'Подкатегория 1'
+          - name: 'Регламенты'
             sort: BY_LIKES
-          - name: 'Подкатегория 2'
+          - name: 'Сотрудники'
+            sort: BY_LIKES
+          - name: 'Офисы'
+            sort: BY_LIKES
+          - name: 'Памятки'
             sort: BY_TIME
+          - name: 'О компании'
+            sort: BY_LIKES
+      - name: Аналитика
+        categories:
+          - name: Для изучения
+            sort: BY_LIKES
+          - name: Инструкции
+            sort: BY_LIKES
+          - name: Митапы
+            sort: BY_LIKES
+      - name: BE DEV
+        categories:
+          - name: How to
+            sort: BY_LIKES
+          - name: Библиотека
+            sort: BY_LIKES
+          - name: Обучение
+            sort: BY_LIKES
+      - name: Web DEV
+        sort: BY_LIKES
+      - name: Mobile DEV
+        sort: BY_LIKES
+      - name: Life
+        categories:
+          - name: Team Challenge
+            sort: BY_LIKES
+          - name: Наши дети
+            sort: BY_LIKES
+          - name: Прямые линии
+            sort: BY_LIKES
+      - name: FAQ
