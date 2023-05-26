@@ -9,8 +9,10 @@ import ru.bsc.newteam4.telegrambot.storage.Storage;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.comparingLong;
 
 @RequiredArgsConstructor
 public class OnceKnowledgeRepository implements KnowledgeRepository {
@@ -19,36 +21,39 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
 
     @Override
     public List<Knowledge> searchByHashtag(String hashtag) {
-        return getByPredicate(knowledge -> knowledge.getHashtags().stream().anyMatch(ht -> ht.equals(hashtag)));
+        return storage.getAll()
+            .stream()
+            .filter(knowledge -> knowledge.getHashtags().stream().anyMatch(ht -> ht.equals(hashtag)))
+            .collect(Collectors.toList());
     }
 
     @Override
     public List<Knowledge> searchByKeywords(String keywords) {
         final List<String> keywordsAsArray = List.of(keywords.split(" "));
-        return getByPredicate(knowledge -> keywordsAsArray.stream().anyMatch(kw -> knowledge.getText().contains(kw)));
+        return storage.getAll()
+            .stream()
+            .filter(knowledge -> keywordsAsArray.stream().anyMatch(kw -> knowledge.getText().contains(kw)))
+            .collect(Collectors.toList());
     }
 
     @Override
     public List<Knowledge> getBestByCategory(Category category) {
-        return getByCategory(category);
+        return getByCategory(category).stream()
+            .sorted(comparingLong(Knowledge::getLikes))
+            .collect(Collectors.toList());
     }
 
     @Override
     public List<Knowledge> getNewestByCategory(Category category) {
-        return null;
+        return getByCategory(category).stream()
+            .sorted(comparing(Knowledge::getCreationDate))
+            .collect(Collectors.toList());
     }
 
     private List<Knowledge> getByCategory(Category category) {
         return storage.getAll()
             .stream()
             .filter(knowledge -> category.equals(knowledge.getCategory()))
-            .collect(Collectors.toList());
-    }
-
-    private List<Knowledge> getByPredicate(Predicate<Knowledge> predicate) {
-        return storage.getAll()
-            .stream()
-            .filter(predicate)
             .collect(Collectors.toList());
     }
 
