@@ -1,4 +1,4 @@
-package ru.bsc.config;
+package ru.bsc.newteam4.telegrambot.config;
 
 import lombok.Data;
 

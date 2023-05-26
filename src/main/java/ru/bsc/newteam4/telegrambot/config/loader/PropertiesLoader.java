@@ -1,4 +1,4 @@
-package ru.bsc.config.loader;
+package ru.bsc.newteam4.telegrambot.config.loader;
 
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
