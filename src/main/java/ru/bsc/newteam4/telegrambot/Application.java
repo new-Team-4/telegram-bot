@@ -35,7 +35,7 @@ public class Application {
                 properties.getTelegramProperties(),
                 new DefaultUpdateHandlerResolver(List.of(
                     new CallbackQueryHandler(properties.getTelegramProperties().getMenu(), repository, readyChatsToPublish),
-                    new CommandHandler(properties.getTelegramProperties().getMenu()),
+                    new CommandHandler(properties.getTelegramProperties().getMenu(), readyChatsToPublish),
                     new PlainMessageHandler(readyChatsToPublish, repository)
                 ))
             );

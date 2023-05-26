@@ -13,15 +13,18 @@ import ru.bsc.newteam4.telegrambot.command.UpdateCategory;
 import ru.bsc.newteam4.telegrambot.command.handler.UpdateHandler;
 import ru.bsc.newteam4.telegrambot.model.Category;
 import ru.bsc.newteam4.telegrambot.model.Menu;
+import ru.bsc.newteam4.telegrambot.model.PublishContext;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 @Slf4j
 @RequiredArgsConstructor
 public class CommandHandler implements UpdateHandler {
     private final Menu menu;
+    private final Map<Long, PublishContext> context;
 
     @Override
     public UpdateCategory getCategory() {
@@ -33,41 +36,33 @@ public class CommandHandler implements UpdateHandler {
         final String command = getCommand(update.getMessage());
         switch (command) {
             case "menu": {
-                final List<Category> categories = menu.getCategories();
-                final List<List<InlineKeyboardButton>> keyboard = IntStream.range(0, categories.size())
-                    .mapToObj(i -> InlineKeyboardButton.builder()
-                        .text(categories.get(i).getName())
-                        .callbackData("category_" + i)
-                        .build()
-                    )
-                    .map(List::of)
-                    .toList();
-                final SendMessage message = new SendMessage();
-                message.setChatId(update.getMessage().getChatId());
-                message.setText(menu.getMessage());
-                message.setReplyMarkup(new InlineKeyboardMarkup(keyboard));
-                return List.of(message);
+                return List.of(createMenuMessage(update));
             }
             case "publish": {
-                final List<Category> categories = menu.getCategories();
-                final List<List<InlineKeyboardButton>> keyboard = IntStream.range(0, categories.size())
-                    .mapToObj(i -> InlineKeyboardButton.builder()
-                        .text(categories.get(i).getName())
-                        .callbackData("publish_" + i)
-                        .build()
-                    )
-                    .map(List::of)
-                    .toList();
-                final SendMessage message = new SendMessage();
-                message.setChatId(update.getMessage().getChatId());
-                message.setText(menu.getMessage());
-                message.setReplyMarkup(new InlineKeyboardMarkup(keyboard));
-                return List.of(message);
+                context.put(update.getMessage().getChatId(), new PublishContext());
+                return List.of(createMenuMessage(update));
             }
             default: {
                 return List.of();
             }
         }
+    }
+
+    private SendMessage createMenuMessage(Update update) {
+        final List<Category> categories = menu.getCategories();
+        final List<List<InlineKeyboardButton>> keyboard = IntStream.range(0, categories.size())
+            .mapToObj(i -> InlineKeyboardButton.builder()
+                .text(categories.get(i).getName())
+                .callbackData("category_" + i)
+                .build()
+            )
+            .map(List::of)
+            .toList();
+        final SendMessage message = new SendMessage();
+        message.setChatId(update.getMessage().getChatId());
+        message.setText(menu.getMessage());
+        message.setReplyMarkup(new InlineKeyboardMarkup(keyboard));
+        return message;
     }
 
     @Override
