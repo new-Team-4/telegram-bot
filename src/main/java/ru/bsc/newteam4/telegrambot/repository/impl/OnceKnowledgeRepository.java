@@ -6,6 +6,7 @@ import ru.bsc.newteam4.telegrambot.model.Knowledge;
 import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 import ru.bsc.newteam4.telegrambot.storage.Storage;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -54,6 +55,7 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
     @Override
     public void save(Knowledge value) {
         value.setId(UUID.randomUUID().toString());
+        value.setCreationDate(LocalDateTime.now());
         storage.save(value);
     }
 }
