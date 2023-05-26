@@ -75,7 +75,7 @@ public class CallbackQueryHandler implements UpdateHandler {
 
     private Category getByIndexes(List<Integer> indexes) {
         Category result = menu.getCategories().get(indexes.get(0));
-        List<Category> subCategories = menu.getCategories();
+        List<Category> subCategories = result.getCategories();
         for (int i = 1; i < indexes.size(); i++) {
             Integer index = indexes.get(i);
             result = subCategories.get(index);
