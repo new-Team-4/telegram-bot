@@ -13,17 +13,14 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import ru.bsc.newteam4.telegrambot.command.UpdateCategory;
 import ru.bsc.newteam4.telegrambot.command.handler.UpdateHandler;
 import ru.bsc.newteam4.telegrambot.model.Category;
-import ru.bsc.newteam4.telegrambot.model.Knowledge;
 import ru.bsc.newteam4.telegrambot.model.Menu;
 import ru.bsc.newteam4.telegrambot.model.PublishContext;
-import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
-import ru.bsc.newteam4.telegrambot.storage.Storage;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Slf4j
