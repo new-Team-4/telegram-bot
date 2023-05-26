@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -134,6 +135,19 @@ public class CallbackQueryHandler implements UpdateHandler {
                 new AnswerCallbackQuery(query.getId()),
                 message
             );
+        } else if (query.getData().startsWith("like_")) {
+            final String id = query.getData().substring(5);
+            final Knowledge knowledge = repository.getById(id);
+            final Long userId = update.getCallbackQuery().getMessage().getFrom().getId();
+            final Set<Long> usersAlreadyLikeKnowledge = knowledge.getUsersAlreadyLikeKnowledge();
+            if (usersAlreadyLikeKnowledge.contains(userId)) {
+                knowledge.setLikes(knowledge.getLikes() - 1L);
+                usersAlreadyLikeKnowledge.remove(userId);
+            } else {
+                knowledge.setLikes(knowledge.getLikes() + 1L);
+                usersAlreadyLikeKnowledge.add(userId);
+            }
+            repository.save(knowledge);
         }
         return List.of();
     }
