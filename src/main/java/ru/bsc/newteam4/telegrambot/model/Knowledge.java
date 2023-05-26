@@ -7,7 +7,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 public class Knowledge {
@@ -27,26 +29,33 @@ public class Knowledge {
         this.hashtags = knowledge.hashtags;
     }
 
-    public SendMessage toMessage() {
+    public SendMessage toMessage(Long viewerId) {
+        final List<InlineKeyboardButton> keyboard = new ArrayList<>();
+        keyboard.add(
+            InlineKeyboardButton.builder()
+                .callbackData("like_" + id)
+                .text(getLikes() + " ❤️")
+                .build()
+        );
+        keyboard.add(
+            InlineKeyboardButton.builder()
+                .callbackData("discuss_" + id)
+                .text("\uD83D\uDCAC")
+                .build()
+        );
+        if (Objects.equals(authorId, viewerId)) {
+            keyboard.add(
+                InlineKeyboardButton.builder()
+                    .callbackData("edit_" + id)
+                    .text("✏️")
+                    .build()
+            );
+        }
+
         final SendMessage message = new SendMessage();
         message.setText(getText());
         message.setEntities(getMessageEntities());
-        message.setReplyMarkup(new InlineKeyboardMarkup(List.of(
-            List.of(
-                InlineKeyboardButton.builder()
-                    .callbackData("like_" + getId())
-                    .text(getLikes() + " ❤️")
-                    .build(),
-                InlineKeyboardButton.builder()
-                    .callbackData("discuss_" + getId())
-                    .text("\uD83D\uDCAC")
-                    .build(),
-                InlineKeyboardButton.builder()
-                    .callbackData("edit_" + getId())
-                    .text("✏️")
-                    .build()
-            )
-        )));
+        message.setReplyMarkup(new InlineKeyboardMarkup(List.of(keyboard)));
         return message;
     }
 }

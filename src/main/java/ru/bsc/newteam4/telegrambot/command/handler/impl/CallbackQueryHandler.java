@@ -16,7 +16,6 @@ import ru.bsc.newteam4.telegrambot.command.handler.UpdateHandler;
 import ru.bsc.newteam4.telegrambot.config.TelegramProperties;
 import ru.bsc.newteam4.telegrambot.model.Category;
 import ru.bsc.newteam4.telegrambot.model.Knowledge;
-import ru.bsc.newteam4.telegrambot.model.Menu;
 import ru.bsc.newteam4.telegrambot.model.PublishContext;
 import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 
@@ -84,7 +83,7 @@ public class CallbackQueryHandler implements UpdateHandler {
                             );
                         } else {
                             final List<SendMessage> messages = knowledge.stream()
-                                .map(Knowledge::toMessage)
+                                .map(k -> k.toMessage(query.getFrom().getId()))
                                 .peek(m -> m.setChatId(query.getMessage().getChatId()))
                                 .toList();
                             final List<BotApiMethod<? extends Serializable>> methods = new ArrayList<>();

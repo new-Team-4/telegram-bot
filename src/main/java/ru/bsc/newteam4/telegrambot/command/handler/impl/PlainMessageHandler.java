@@ -36,8 +36,9 @@ public class PlainMessageHandler implements UpdateHandler {
         if (readyChatToPublishMap.get(chatId) != null) {
             final String text = update.getMessage().getText();
             final PublishContext publishContext = readyChatToPublishMap.get(chatId);
+            final Long userId = update.getMessage().getFrom().getId();
             final Knowledge knowledge = new Knowledge();
-            knowledge.setAuthorId(update.getMessage().getFrom().getId());
+            knowledge.setAuthorId(userId);
             knowledge.setText(text);
             knowledge.setMessageEntities(update.getMessage().getEntities());
             knowledge.setCategory(publishContext.getCategory());
@@ -45,7 +46,7 @@ public class PlainMessageHandler implements UpdateHandler {
             knowledgeRepository.save(knowledge);
             readyChatToPublishMap.remove(chatId);
 
-            final SendMessage message = knowledge.toMessage();
+            final SendMessage message = knowledge.toMessage(userId);
             message.setChatId(update.getMessage().getChatId());
             return List.of(message);
         } else {
