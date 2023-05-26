@@ -46,7 +46,9 @@ public class PlainMessageHandler implements UpdateHandler {
             knowledgeRepository.save(knowledge);
             readyChatToPublishMap.remove(chatId);
 
-            return List.of(toMessage(knowledge));
+            final SendMessage message = toMessage(knowledge);
+            message.setChatId(update.getMessage().getChatId());
+            return List.of(message);
         } else {
             return List.of();
         }
