@@ -10,6 +10,8 @@ import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.bsc.newteam4.telegrambot.SendMessageWithCallback;
 import ru.bsc.newteam4.telegrambot.command.UpdateCategory;
 import ru.bsc.newteam4.telegrambot.command.handler.UpdateHandler;
 import ru.bsc.newteam4.telegrambot.config.TelegramProperties;
@@ -54,12 +56,33 @@ public class PlainMessageHandler implements UpdateHandler {
             knowledge.setText(message.getText());
             knowledge.setMessageEntities(message.getEntities());
             knowledge.setHashtags(extractHashTags(message.getEntities()));
-            knowledgeRepository.save(knowledge);
-            readyChatToPublishMap.remove(chatId);
 
-            final SendMessage sendMessage = knowledge.toMessage(userId);
-            sendMessage.setChatId(message.getChatId());
-            return List.of(sendMessage);
+            final SendMessage channelMessage = knowledge.toMessage(userId, false);
+            channelMessage.setText(
+                "Новая публикация в категории: '" + knowledge.getCategory().getName() + "'\n\n"
+                + channelMessage.getText()
+            );
+            channelMessage.setChatId(telegramProperties.getDiscussionChannel());
+            final SendMessageWithCallback sentChannelMessageWithCallback = new SendMessageWithCallback(
+                channelMessage,
+                (sender, postedMessage) -> {
+                    final String channelId = postedMessage.getChatId().toString().substring(4);
+                    final Integer channelMessageId = postedMessage.getMessageId();
+                    knowledge.setDiscussionLink("https://t.me/c/" + channelId + "/" + channelMessageId);
+                    knowledgeRepository.save(knowledge);
+                    readyChatToPublishMap.remove(chatId);
+
+                    try {
+                        final SendMessage sendMessage = knowledge.toMessage(userId);
+                        sendMessage.setChatId(message.getChatId());
+                        sender.execute(sendMessage);
+                    } catch (TelegramApiException e) {
+                        log.error("Unable show post after publish", e);
+                    }
+                }
+            );
+
+            return List.of(sentChannelMessageWithCallback);
         } else {
             List<BotApiMethod<? extends Serializable>> methods = new ArrayList<>();
             final List<String> words = Arrays.asList(update.getMessage().getText().split(" "));

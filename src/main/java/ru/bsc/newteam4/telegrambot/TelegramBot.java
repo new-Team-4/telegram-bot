@@ -35,10 +35,19 @@ public class TelegramBot extends TelegramLongPollingBot {
         try {
             final List<BotApiMethod<? extends Serializable>> methods = handler.handle(update);
             for (BotApiMethod<? extends Serializable> method : methods) {
-                execute(method);
+                if (method instanceof BotApiMethodWithCallback<? extends Serializable> callbackMethod) {
+                    invokeWithCallback(callbackMethod);
+                } else {
+                    execute(method);
+                }
             }
         } catch (TelegramApiException e) {
             log.error("Error handle update: {}", update, e);
         }
+    }
+
+    private <T extends Serializable> void invokeWithCallback(BotApiMethodWithCallback<T> method) throws TelegramApiException {
+        final T value = execute(method.getSource());
+        method.callback(this, value);
     }
 }

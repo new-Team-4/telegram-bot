@@ -26,12 +26,19 @@ public class Knowledge {
     private Long likes = 0L;
     private Set<Long> usersAlreadyLikeKnowledge = new HashSet<>();
     private LocalDateTime creationDate;
+    private String discussionLink;
 
     public SendMessage toMessage(Long viewerId) {
+        return toMessage(viewerId, true);
+    }
+
+    public SendMessage toMessage(Long viewerId, boolean withMenu) {
         final SendMessage message = new SendMessage();
         message.setText(getText());
         message.setEntities(getMessageEntities());
-        message.setReplyMarkup(new InlineKeyboardMarkup(List.of(createKeyboard(viewerId))));
+        if (withMenu) {
+            message.setReplyMarkup(new InlineKeyboardMarkup(List.of(createKeyboard(viewerId))));
+        }
         return message;
     }
 
@@ -43,12 +50,14 @@ public class Knowledge {
                 .text(getLikes() + " ❤️")
                 .build()
         );
-        keyboard.add(
-            InlineKeyboardButton.builder()
-                .callbackData("discuss_" + id)
-                .text("\uD83D\uDCAC")
-                .build()
-        );
+        if (discussionLink != null) {
+            keyboard.add(
+                InlineKeyboardButton.builder()
+                    .url(discussionLink)
+                    .text("\uD83D\uDCAC")
+                    .build()
+            );
+        }
         if (Objects.equals(authorId, viewerId)) {
             keyboard.add(
                 InlineKeyboardButton.builder()

@@ -8,5 +8,6 @@ public class TelegramProperties {
     private String botName;
     private String token;
     private Long countToShow;
+    private Long discussionChannel;
     private Menu menu;
 }
