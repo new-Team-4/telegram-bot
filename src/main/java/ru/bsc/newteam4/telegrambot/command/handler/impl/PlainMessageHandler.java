@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.EntityType;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.bsc.newteam4.telegrambot.command.UpdateCategory;
@@ -32,26 +33,35 @@ public class PlainMessageHandler implements UpdateHandler {
 
     @Override
     public List<BotApiMethod<? extends Serializable>> handle(Update update) {
-        final Long chatId = update.getMessage().getChatId();
-        if (readyChatToPublishMap.get(chatId) != null) {
-            final String text = update.getMessage().getText();
-            final PublishContext publishContext = readyChatToPublishMap.get(chatId);
-            final Long userId = update.getMessage().getFrom().getId();
-            final Knowledge knowledge = new Knowledge();
+        final Message message = update.getMessage();
+        final Long chatId = message.getChatId();
+        final PublishContext context = readyChatToPublishMap.get(chatId);
+        if (context != null) {
+            final Long userId = message.getFrom().getId();
+            final Knowledge knowledge = context.getId() != null ?
+                knowledgeRepository.getById(context.getId()) :
+                new Knowledge();
+            if (context.getCategory() != null) {
+                knowledge.setCategory(context.getCategory());
+            }
             knowledge.setAuthorId(userId);
-            knowledge.setText(text);
-            knowledge.setMessageEntities(update.getMessage().getEntities());
-            knowledge.setCategory(publishContext.getCategory());
-            knowledge.setHashtags(extractHashTags(update.getMessage().getEntities()));
+            knowledge.setText(message.getText());
+            knowledge.setMessageEntities(message.getEntities());
+            knowledge.setHashtags(extractHashTags(message.getEntities()));
             knowledgeRepository.save(knowledge);
             readyChatToPublishMap.remove(chatId);
 
-            final SendMessage message = knowledge.toMessage(userId);
-            message.setChatId(update.getMessage().getChatId());
-            return List.of(message);
+            final SendMessage sendMessage = knowledge.toMessage(userId);
+            sendMessage.setChatId(message.getChatId());
+            return List.of(sendMessage);
         } else {
             return List.of();
         }
+    }
+
+    @Override
+    public void handleException(Update update, Exception exception) {
+        log.error("Error handle update: {}", update, exception);
     }
 
     private List<String> extractHashTags(List<MessageEntity> entities) {
@@ -62,10 +72,5 @@ public class PlainMessageHandler implements UpdateHandler {
             .filter(messageEntity -> EntityType.HASHTAG.equals(messageEntity.getType()))
             .map(MessageEntity::getText)
             .collect(Collectors.toList());
-    }
-
-    @Override
-    public void handleException(Update update, Exception exception) {
-        log.error("Error handle update: {}", update, exception);
     }
 }

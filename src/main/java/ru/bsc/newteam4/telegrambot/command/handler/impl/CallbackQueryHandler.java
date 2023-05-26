@@ -58,7 +58,7 @@ public class CallbackQueryHandler implements UpdateHandler {
                 final List<Integer> indexes = getIndexes(query.getData());
                 final Category category = getByIndexes(indexes);
                 if (category.isTerminal()) {
-                    final PublishContext publishContext = readyChatToPublishMap.get(update.getCallbackQuery().getMessage().getChatId());
+                    final PublishContext publishContext = readyChatToPublishMap.get(query.getFrom().getId());
                     if (publishContext != null) {
                         publishContext.setCategory(category);
                         final AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery(query.getId());
@@ -88,7 +88,7 @@ public class CallbackQueryHandler implements UpdateHandler {
                                 answerCallbackQuery,
                                 SendMessage.builder()
                                     .chatId(query.getMessage().getChatId())
-                                    .text("Выбирите интересующий вас пост")
+                                    .text("Выберите интересующий вас пост")
                                     .replyMarkup(new InlineKeyboardMarkup(keyboard))
                                     .build()
                             );
@@ -127,8 +127,7 @@ public class CallbackQueryHandler implements UpdateHandler {
                 }
             }
         } else if (query.getData().startsWith("show_")) {
-            final String id = query.getData().replaceAll("show_", "");
-            final Knowledge knowledge = repository.getById(id);
+            final Knowledge knowledge = repository.getById(getKnowledgeId(query.getData()));
             final SendMessage message = knowledge.toMessage(query.getFrom().getId());
             message.setChatId(query.getMessage().getChatId());
             return List.of(
@@ -136,8 +135,7 @@ public class CallbackQueryHandler implements UpdateHandler {
                 message
             );
         } else if (query.getData().startsWith("like_")) {
-            final String id = query.getData().replaceAll("like_", "");
-            final Knowledge knowledge = repository.getById(id);
+            final Knowledge knowledge = repository.getById(getKnowledgeId(query.getData()));
             final Long userId = query.getFrom().getId();
             final Set<Long> usersAlreadyLikeKnowledge = knowledge.getUsersAlreadyLikeKnowledge();
             if (usersAlreadyLikeKnowledge.contains(userId)) {
@@ -157,6 +155,18 @@ public class CallbackQueryHandler implements UpdateHandler {
                     .replyMarkup(new InlineKeyboardMarkup(List.of(knowledge.createKeyboard(userId))))
                     .build()
             );
+        } else if (query.getData().startsWith("edit_")) {
+            final String id = getKnowledgeId(query.getData());
+            final PublishContext context = new PublishContext();
+            context.setId(id);
+            readyChatToPublishMap.put(query.getFrom().getId(), context);
+            return List.of(
+                new AnswerCallbackQuery(query.getId()),
+                SendMessage.builder()
+                    .chatId(query.getMessage().getChatId())
+                    .text("Введите новый текст поста")
+                    .build()
+            );
         }
         return List.of();
     }
@@ -166,7 +176,7 @@ public class CallbackQueryHandler implements UpdateHandler {
         log.error("Error handle update: {}", update, exception);
     }
 
-    private static List<List<InlineKeyboardButton>> convertCategoriesToKeyboard(List<Category> categories, List<Integer> indexes) {
+    private List<List<InlineKeyboardButton>> convertCategoriesToKeyboard(List<Category> categories, List<Integer> indexes) {
         final String basePath = indexes.size() == 0 ?
             "category" :
             indexes.stream()
@@ -198,5 +208,9 @@ public class CallbackQueryHandler implements UpdateHandler {
             subCategories = result.getCategories();
         }
         return result;
+    }
+
+    private String getKnowledgeId(String data) {
+        return data.substring(data.indexOf('_') + 1);
     }
 }
