@@ -66,6 +66,6 @@ public class PlainMessageHandler implements UpdateHandler {
 
     @Override
     public void handleException(Update update, Exception exception) {
-
+        log.error("Error handle update: {}", update, exception);
     }
 }
