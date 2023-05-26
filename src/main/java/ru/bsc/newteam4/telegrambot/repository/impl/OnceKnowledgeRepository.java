@@ -54,6 +54,11 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
     }
 
     @Override
+    public Knowledge getById(String id) {
+        return storage.get(id);
+    }
+
+    @Override
     public List<Knowledge> searchByHashtag(String hashtag) {
         return storage.values()
             .stream()
