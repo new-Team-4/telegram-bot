@@ -2,12 +2,10 @@ package ru.bsc.newteam4.telegrambot.command.handler.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.EntityType;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.MessageEntity;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -17,13 +15,11 @@ import ru.bsc.newteam4.telegrambot.command.handler.UpdateHandler;
 import ru.bsc.newteam4.telegrambot.config.TelegramProperties;
 import ru.bsc.newteam4.telegrambot.model.Knowledge;
 import ru.bsc.newteam4.telegrambot.model.PublishContext;
+import ru.bsc.newteam4.telegrambot.model.TransformContext;
 import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -40,7 +36,7 @@ public class PlainMessageHandler implements UpdateHandler {
     }
 
     @Override
-    public List<BotApiMethod<? extends Serializable>> handle(Update update) {
+    public List<PartialBotApiMethod<? extends Serializable>> handle(Update update) {
         final Message message = update.getMessage();
         final Long chatId = message.getChatId();
         final PublishContext context = readyChatToPublishMap.get(chatId);
@@ -53,16 +49,29 @@ public class PlainMessageHandler implements UpdateHandler {
                 knowledge.setCategory(context.getCategory());
             }
             knowledge.setAuthorId(userId);
-            knowledge.setText(message.getText());
-            knowledge.setMessageEntities(message.getEntities());
+            if (message.getPhoto() != null && message.getPhoto().size() > 0) {
+                final PhotoSize photo = message.getPhoto()
+                    .stream()
+                    .max(Comparator.comparing(PhotoSize::getFileSize))
+                    .orElse(message.getPhoto().get(0));
+
+                knowledge.setText(message.getCaption());
+                knowledge.setImageId(photo.getFileId());
+                knowledge.setMessageEntities(message.getCaptionEntities());
+            } else {
+                knowledge.setText(message.getText());
+                knowledge.setMessageEntities(message.getEntities());
+            }
             knowledge.setHashtags(extractHashTags(message.getEntities()));
 
-            final SendMessage channelMessage = knowledge.toMessage(userId, false);
-            channelMessage.setText(
-                "Новая публикация в категории: '" + knowledge.getCategory().getName() + "'\n\n"
-                + channelMessage.getText()
-            );
-            channelMessage.setChatId(telegramProperties.getDiscussionChannel());
+            final TransformContext transformContext = new TransformContext(
+                telegramProperties.getDiscussionChannel(),
+                userId
+            )
+                .setMessagePrefix("Новая публикация в категории: '" + knowledge.getCategory().getName() + "'\n\n")
+                .setWithMenu(false);
+
+            final PartialBotApiMethod<Message> channelMessage = knowledge.toMessage(transformContext);
             final SendMessageWithCallback sentChannelMessageWithCallback = new SendMessageWithCallback(
                 channelMessage,
                 (sender, postedMessage) -> {
@@ -73,9 +82,17 @@ public class PlainMessageHandler implements UpdateHandler {
                     readyChatToPublishMap.remove(chatId);
 
                     try {
-                        final SendMessage sendMessage = knowledge.toMessage(userId);
-                        sendMessage.setChatId(message.getChatId());
-                        sender.execute(sendMessage);
+                        final PartialBotApiMethod<Message> sendMessage = knowledge.toMessage(new TransformContext(
+                            message.getChatId(),
+                            userId
+                        ));
+                        if (sendMessage instanceof SendMessage send) {
+                            sender.execute(send);
+                        } else if (sendMessage instanceof SendPhoto photo) {
+                            sender.execute(photo);
+                        } else {
+                            log.warn("Unknown action type: {}", sendMessage);
+                        }
                     } catch (TelegramApiException e) {
                         log.error("Unable show post after publish", e);
                     }
@@ -84,7 +101,7 @@ public class PlainMessageHandler implements UpdateHandler {
 
             return List.of(sentChannelMessageWithCallback);
         } else {
-            List<BotApiMethod<? extends Serializable>> methods = new ArrayList<>();
+            List<PartialBotApiMethod<? extends Serializable>> methods = new ArrayList<>();
             final List<String> words = Arrays.asList(update.getMessage().getText().split(" "));
             final List<Knowledge> knowledges;
             final String searchType;
@@ -112,9 +129,11 @@ public class PlainMessageHandler implements UpdateHandler {
                         .build()
                 );
             } else {
-                final List<SendMessage> messages = knowledges.stream()
-                    .map(k -> k.toMessage(update.getMessage().getFrom().getId()))
-                    .peek(m -> m.setChatId(update.getMessage().getChatId()))
+                final List<PartialBotApiMethod<Message>> messages = knowledges.stream()
+                    .map(k -> k.toMessage(new TransformContext(
+                        update.getMessage().getChatId(),
+                        update.getMessage().getFrom().getId()
+                    )))
                     .toList();
                 if (messages.isEmpty()) {
                     methods = List.of(

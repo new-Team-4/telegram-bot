@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
@@ -52,12 +54,14 @@ public class TelegramBot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         final UpdateHandler handler = resolver.resolve(update);
         try {
-            final List<BotApiMethod<? extends Serializable>> methods = handler.handle(update);
-            for (BotApiMethod<? extends Serializable> method : methods) {
+            final List<PartialBotApiMethod<? extends Serializable>> methods = handler.handle(update);
+            for (PartialBotApiMethod<? extends Serializable> method : methods) {
                 if (method instanceof BotApiMethodWithCallback<? extends Serializable> callbackMethod) {
                     invokeWithCallback(callbackMethod);
-                } else {
-                    execute(method);
+                } else if (method instanceof BotApiMethod<? extends Serializable> m) {
+                    execute(m);
+                } else if (method instanceof SendPhoto photo) {
+                    execute(photo);
                 }
             }
         } catch (TelegramApiException e) {
@@ -66,7 +70,14 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private <T extends Serializable> void invokeWithCallback(BotApiMethodWithCallback<T> method) throws TelegramApiException {
-        final T value = execute(method.getSource());
-        method.callback(this, value);
+        final PartialBotApiMethod<T> sourceMethod = method.getSource();
+        if (sourceMethod instanceof BotApiMethod<T> m) {
+            final T value = execute(m);
+            method.callback(this, value);
+        } else if (sourceMethod instanceof SendPhoto photo) {
+            //noinspection unchecked
+            final T value = (T) execute(photo);
+            method.callback(this, value);
+        }
     }
 }

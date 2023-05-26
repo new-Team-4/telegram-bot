@@ -2,7 +2,7 @@ package ru.bsc.newteam4.telegrambot.command.handler.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
@@ -32,7 +32,7 @@ public class CommandHandler implements UpdateHandler {
     }
 
     @Override
-    public List<BotApiMethod<? extends Serializable>> handle(Update update) {
+    public List<PartialBotApiMethod<? extends Serializable>> handle(Update update) {
         final String command = getCommand(update.getMessage());
         switch (command) {
             case "start", "help" -> {

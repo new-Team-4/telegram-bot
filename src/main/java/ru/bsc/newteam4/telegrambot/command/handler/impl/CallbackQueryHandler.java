@@ -3,11 +3,12 @@ package ru.bsc.newteam4.telegrambot.command.handler.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -17,6 +18,7 @@ import ru.bsc.newteam4.telegrambot.config.TelegramProperties;
 import ru.bsc.newteam4.telegrambot.model.Category;
 import ru.bsc.newteam4.telegrambot.model.Knowledge;
 import ru.bsc.newteam4.telegrambot.model.PublishContext;
+import ru.bsc.newteam4.telegrambot.model.TransformContext;
 import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 
 import java.io.Serializable;
@@ -39,7 +41,7 @@ public class CallbackQueryHandler implements UpdateHandler {
     }
 
     @Override
-    public List<BotApiMethod<? extends Serializable>> handle(Update update) {
+    public List<PartialBotApiMethod<? extends Serializable>> handle(Update update) {
         final CallbackQuery query = update.getCallbackQuery();
         if (query.getData().startsWith("category_")) {
             if (CATEGORY_ROOT.equals(query.getData())) {
@@ -89,11 +91,10 @@ public class CallbackQueryHandler implements UpdateHandler {
                                     .build()
                             );
                         } else {
-                            final List<SendMessage> messages = knowledge.stream()
-                                .map(k -> k.toMessage(query.getFrom().getId()))
-                                .peek(m -> m.setChatId(query.getMessage().getChatId()))
+                            final List<PartialBotApiMethod<Message>> messages = knowledge.stream()
+                                .map(k -> k.toMessage(new TransformContext(query.getMessage().getChatId(), query.getFrom().getId())))
                                 .toList();
-                            final List<BotApiMethod<? extends Serializable>> methods = new ArrayList<>();
+                            final List<PartialBotApiMethod<? extends Serializable>> methods = new ArrayList<>();
                             methods.add(answerCallbackQuery);
                             methods.addAll(messages);
                             return methods;
@@ -124,8 +125,10 @@ public class CallbackQueryHandler implements UpdateHandler {
             }
         } else if (query.getData().startsWith("show_")) {
             final Knowledge knowledge = repository.getById(getKnowledgeId(query.getData()));
-            final SendMessage message = knowledge.toMessage(query.getFrom().getId());
-            message.setChatId(query.getMessage().getChatId());
+            final PartialBotApiMethod<Message> message = knowledge.toMessage(new TransformContext(
+                query.getMessage().getChatId(),
+                query.getFrom().getId()
+            ));
             return List.of(
                 new AnswerCallbackQuery(query.getId()),
                 message
