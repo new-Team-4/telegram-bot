@@ -45,7 +45,7 @@ public class PlainMessageHandler implements UpdateHandler {
             readyChatToPublishMap.remove(chatId);
 
             final SendMessage sendMessage = new SendMessage();
-            sendMessage.setText("Ваше сообщение опубликовано!" + knowledge);
+            sendMessage.setText("Ваше сообщение опубликовано!");
             sendMessage.setChatId(update.getMessage().getChatId());
             return List.of(sendMessage);
         } else {
