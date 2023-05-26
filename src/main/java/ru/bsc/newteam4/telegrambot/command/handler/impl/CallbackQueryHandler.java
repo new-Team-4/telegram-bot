@@ -22,12 +22,14 @@ import ru.bsc.newteam4.telegrambot.storage.Storage;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.Map;
 import java.util.stream.IntStream;
 
 @Slf4j
 @RequiredArgsConstructor
 public class CallbackQueryHandler implements UpdateHandler {
+    private static final String CATEGORY_ROOT = "category_root";
 
     private final Menu menu;
     private final Map<Long, PublishContext> readyChatToPublishMap;
@@ -41,28 +43,44 @@ public class CallbackQueryHandler implements UpdateHandler {
     public List<BotApiMethod<? extends Serializable>> handle(Update update) {
         final CallbackQuery query = update.getCallbackQuery();
         if (query.getData().startsWith("category_")) {
-            final Category category = getByIndexes(getIndexes(query.getData()));
-            if (category.isTerminal()) {
-                final SendMessage message = new SendMessage();
-                message.setChatId(update.getCallbackQuery().getMessage().getChatId());
-                message.setText("???");
-                return List.of(message);
-            } else {
-                final List<Category> categories = category.getCategories();
-                final List<List<InlineKeyboardButton>> keyboard = IntStream.range(0, categories.size())
-                    .mapToObj(i -> InlineKeyboardButton.builder()
-                        .text(categories.get(i).getName())
-                        .callbackData(query.getData() + "_" + i)
-                        .build()
-                    )
-                    .map(List::of)
-                    .toList();
+            if (CATEGORY_ROOT.equals(query.getData())) {
+                final List<Category> categories = menu.getCategories();
                 final AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery(query.getId());
                 final EditMessageReplyMarkup edit = new EditMessageReplyMarkup();
                 edit.setChatId(query.getMessage().getChatId());
                 edit.setMessageId(query.getMessage().getMessageId());
-                edit.setReplyMarkup(new InlineKeyboardMarkup(keyboard));
+                edit.setReplyMarkup(new InlineKeyboardMarkup(convertCategoriesToKeyboard(categories, List.of())));
                 return List.of(answerCallbackQuery, edit);
+            } else {
+                final List<Integer> indexes = getIndexes(query.getData());
+                final Category category = getByIndexes(indexes);
+                if (category.isTerminal()) {
+                    final SendMessage message = new SendMessage();
+                    message.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                    message.setText("???");
+                    return List.of(message);
+                } else {
+                    final List<Category> categories = category.getCategories();
+                    final List<List<InlineKeyboardButton>> keyboard = convertCategoriesToKeyboard(categories, indexes);
+                    final String prevData = indexes.size() == 1 ?
+                        CATEGORY_ROOT :
+                        indexes.stream()
+                            .limit(indexes.size() - 1)
+                            .map(Object::toString)
+                            .collect(Collectors.joining("_", "category_", ""));
+                    keyboard.add(List.of(
+                        InlineKeyboardButton.builder()
+                            .text("<<<")
+                            .callbackData(prevData)
+                            .build()
+                    ));
+                    final AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery(query.getId());
+                    final EditMessageReplyMarkup edit = new EditMessageReplyMarkup();
+                    edit.setChatId(query.getMessage().getChatId());
+                    edit.setMessageId(query.getMessage().getMessageId());
+                    edit.setReplyMarkup(new InlineKeyboardMarkup(keyboard));
+                    return List.of(answerCallbackQuery, edit);
+                }
             }
         } else if (query.getData().startsWith("publish_")) {
             final Category category = getByIndexes(getIndexes(query.getData()));
@@ -96,6 +114,22 @@ public class CallbackQueryHandler implements UpdateHandler {
     @Override
     public void handleException(Update update, Exception exception) {
         log.error("Error handle update: {}", update, exception);
+    }
+
+    private static List<List<InlineKeyboardButton>> convertCategoriesToKeyboard(List<Category> categories, List<Integer> indexes) {
+        final String basePath = indexes.size() == 0 ?
+            "category" :
+            indexes.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining("_", "category_", ""));
+        return IntStream.range(0, categories.size())
+            .mapToObj(i -> InlineKeyboardButton.builder()
+                .text(categories.get(i).getName())
+                .callbackData(basePath + "_" + i)
+                .build()
+            )
+            .map(List::of)
+            .collect(Collectors.toList());
     }
 
     private List<Integer> getIndexes(String data) {
