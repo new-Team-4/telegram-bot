@@ -171,11 +171,6 @@ public class CallbackQueryHandler implements UpdateHandler {
         return List.of();
     }
 
-    @Override
-    public void handleException(Update update, Exception exception) {
-        log.error("Error handle update: {}", update, exception);
-    }
-
     private List<List<InlineKeyboardButton>> convertCategoriesToKeyboard(List<Category> categories, List<Integer> indexes) {
         final String basePath = indexes.size() == 0 ?
             "category" :

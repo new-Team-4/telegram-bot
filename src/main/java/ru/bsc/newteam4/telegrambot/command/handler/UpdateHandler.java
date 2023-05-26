@@ -10,5 +10,4 @@ import java.util.List;
 public interface UpdateHandler {
     UpdateCategory getCategory();
     List<BotApiMethod<? extends Serializable>> handle(Update update);
-    void handleException(Update update, Exception exception);
 }

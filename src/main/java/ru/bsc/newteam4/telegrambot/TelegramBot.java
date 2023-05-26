@@ -1,5 +1,6 @@
 package ru.bsc.newteam4.telegrambot;
 
+import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -12,6 +13,7 @@ import ru.bsc.newteam4.telegrambot.config.TelegramProperties;
 import java.io.Serializable;
 import java.util.List;
 
+@Slf4j
 public class TelegramBot extends TelegramLongPollingBot {
     private final String botName;
     private final UpdateHandlerResolver resolver;
@@ -36,7 +38,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 execute(method);
             }
         } catch (TelegramApiException e) {
-            handler.handleException(update, e);
+            log.error("Error handle update: {}", update, e);
         }
     }
 }

@@ -65,11 +65,6 @@ public class CommandHandler implements UpdateHandler {
         return message;
     }
 
-    @Override
-    public void handleException(Update update, Exception exception) {
-        log.error("Error handle update {}", update, exception);
-    }
-
     private String getCommand(Message message) {
         final String text = message.getText();
         final MessageEntity commandEntity = message.getEntities().get(0);

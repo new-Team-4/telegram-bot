@@ -59,11 +59,6 @@ public class PlainMessageHandler implements UpdateHandler {
         }
     }
 
-    @Override
-    public void handleException(Update update, Exception exception) {
-        log.error("Error handle update: {}", update, exception);
-    }
-
     private List<String> extractHashTags(List<MessageEntity> entities) {
         if (entities == null) {
             return List.of();
