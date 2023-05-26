@@ -6,18 +6,22 @@ import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.bsc.newteam4.telegrambot.command.UpdateCategory;
 import ru.bsc.newteam4.telegrambot.command.handler.UpdateHandler;
+import ru.bsc.newteam4.telegrambot.config.TelegramProperties;
 import ru.bsc.newteam4.telegrambot.model.Category;
+import ru.bsc.newteam4.telegrambot.model.Knowledge;
 import ru.bsc.newteam4.telegrambot.model.Menu;
 import ru.bsc.newteam4.telegrambot.model.PublishContext;
 import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +33,7 @@ import java.util.stream.IntStream;
 public class CallbackQueryHandler implements UpdateHandler {
     private static final String CATEGORY_ROOT = "category_root";
 
-    private final Menu menu;
+    private final TelegramProperties properties;
     private final KnowledgeRepository repository;
     private final Map<Long, PublishContext> readyChatToPublishMap;
 
@@ -43,7 +47,7 @@ public class CallbackQueryHandler implements UpdateHandler {
         final CallbackQuery query = update.getCallbackQuery();
         if (query.getData().startsWith("category_")) {
             if (CATEGORY_ROOT.equals(query.getData())) {
-                final List<Category> categories = menu.getCategories();
+                final List<Category> categories = properties.getMenu().getCategories();
                 final AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery(query.getId());
                 final EditMessageReplyMarkup edit = new EditMessageReplyMarkup();
                 edit.setChatId(query.getMessage().getChatId());
@@ -58,16 +62,36 @@ public class CallbackQueryHandler implements UpdateHandler {
                     if (publishContext != null) {
                         publishContext.setCategory(category);
                         final AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery(query.getId());
-                        final SendMessage message = new SendMessage();
-                        message.setChatId(update.getCallbackQuery().getMessage().getChatId());
-                        message.setText(String.format("Вы выбрали категорию %s, ваша публикация будет размещена в этой категории. Пожалуйста, напишите Ваш текст ниже\n", category.getName()));
-                        return List.of(answerCallbackQuery, message);
+                        final EditMessageText edit = new EditMessageText();
+                        edit.setChatId(query.getMessage().getChatId());
+                        edit.setMessageId(query.getMessage().getMessageId());
+                        edit.setText(String.format("Вы выбрали категорию %s, ваша публикация будет размещена в этой категории. Пожалуйста, напишите Ваш текст ниже\n", category.getName()));
+                        edit.setReplyMarkup(new InlineKeyboardMarkup(List.of()));
+                        return List.of(answerCallbackQuery, edit);
                     } else {
                         final AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery(query.getId());
-                        final SendMessage message = new SendMessage();
-                        message.setChatId(update.getCallbackQuery().getMessage().getChatId());
-                        message.setText("???");
-                        return List.of(answerCallbackQuery, message);
+                        final List<Knowledge> knowledge = switch (category.getSort()) {
+                            case BY_LIKES -> repository.getBestByCategory(category);
+                            case BY_TIME -> repository.getNewestByCategory(category);
+                        };
+                        if (knowledge.size() > properties.getCountToShow()) {
+                            return List.of(
+                                answerCallbackQuery,
+                                SendMessage.builder()
+                                .chatId(query.getMessage().getChatId())
+                                .text("\uD83D\uDE13")
+                                .build()
+                            );
+                        } else {
+                            final List<SendMessage> messages = knowledge.stream()
+                                .map(this::toMessage)
+                                .peek(m -> m.setChatId(query.getMessage().getChatId()))
+                                .toList();
+                            final List<BotApiMethod<? extends Serializable>> methods = new ArrayList<>();
+                            methods.add(answerCallbackQuery);
+                            methods.addAll(messages);
+                            return methods;
+                        }
                     }
                 } else {
                     final List<Category> categories = category.getCategories();
@@ -94,6 +118,29 @@ public class CallbackQueryHandler implements UpdateHandler {
             }
         }
         return List.of();
+    }
+
+    private SendMessage toMessage(Knowledge knowledge) {
+        final SendMessage message = new SendMessage();
+        message.setText(knowledge.getText());
+        message.setEntities(knowledge.getMessageEntities());
+        message.setReplyMarkup(new InlineKeyboardMarkup(List.of(
+            List.of(
+                InlineKeyboardButton.builder()
+                    .callbackData("like_" + knowledge.getId())
+                    .text("❤️")
+                    .build(),
+                InlineKeyboardButton.builder()
+                    .callbackData("discuss_" + knowledge.getId())
+                    .text("\uD83D\uDCAC")
+                    .build(),
+                InlineKeyboardButton.builder()
+                    .callbackData("edit_" + knowledge.getId())
+                    .text("✏️")
+                    .build()
+            )
+        )));
+        return message;
     }
 
     @Override
@@ -125,7 +172,7 @@ public class CallbackQueryHandler implements UpdateHandler {
     }
 
     private Category getByIndexes(List<Integer> indexes) {
-        Category result = menu.getCategories().get(indexes.get(0));
+        Category result = properties.getMenu().getCategories().get(indexes.get(0));
         List<Category> subCategories = result.getCategories();
         for (int i = 1; i < indexes.size(); i++) {
             Integer index = indexes.get(i);

@@ -7,5 +7,6 @@ import ru.bsc.newteam4.telegrambot.model.Menu;
 public class TelegramProperties {
     private String botName;
     private String token;
+    private Long countToShow;
     private Menu menu;
 }

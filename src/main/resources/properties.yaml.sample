@@ -3,6 +3,7 @@ storageProperties:
 telegramProperties:
   botName: test-bot
   token:
+  countToShow: 2
   menu:
     message: 'Категории'
     categories:
