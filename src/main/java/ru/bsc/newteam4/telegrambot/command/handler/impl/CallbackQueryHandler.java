@@ -173,6 +173,7 @@ public class CallbackQueryHandler implements UpdateHandler {
             final String id = getKnowledgeId(query.getData());
             repository.remove(id);
             return List.of(
+                new AnswerCallbackQuery(query.getId()),
                 SendMessage.builder()
                     .chatId(query.getMessage().getChatId())
                     .text("Пост удален ✌")
