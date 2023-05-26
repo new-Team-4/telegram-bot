@@ -42,6 +42,7 @@ public class PlainMessageHandler implements UpdateHandler {
             knowledge.setCategory(publishContext.getCategory());
             knowledge.setHashtags(extractHashTag(text));
             knowledgeRepository.save(knowledge);
+            readyChatToPublishMap.remove(chatId);
 
             final SendMessage sendMessage = new SendMessage();
             sendMessage.setText("Ваше сообщение опубликовано!" + knowledge);
