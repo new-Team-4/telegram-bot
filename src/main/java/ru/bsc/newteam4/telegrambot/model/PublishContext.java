@@ -7,6 +7,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PublishContext {
 
-    private final Category category;
+    private Category category;
 
 }
