@@ -16,7 +16,6 @@
         <lombok.version>1.18.28</lombok.version>
         <logback.version>1.4.7</logback.version>
         <telegrambots.version>6.5.0</telegrambots.version>
-        <gson.version>2.10.1</gson.version>
     </properties>
 
     <dependencies>
@@ -40,11 +39,6 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>${gson.version}</version>
         </dependency>
     </dependencies>
 </project>
