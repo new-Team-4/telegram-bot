@@ -100,7 +100,13 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
     public void save(Knowledge value) {
         if (value.getId() != null && storage.get(value.getId()) != null) {
             final Knowledge knowledge = storage.get(value.getId());
-            knowledge.copy(value);
+            knowledge.setCategory(value.getCategory());
+            knowledge.setText(value.getText());
+            knowledge.setLikes(value.getLikes());
+            knowledge.setAuthorId(value.getAuthorId());
+            knowledge.setHashtags(value.getHashtags());
+            knowledge.setMessageEntities(value.getMessageEntities());
+            knowledge.setUsersAlreadyLikeKnowledge(value.getUsersAlreadyLikeKnowledge());
             storage.remove(value.getId());
         } else {
             value.setId(UUID.randomUUID().toString());

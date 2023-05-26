@@ -27,12 +27,6 @@ public class Knowledge {
     private Set<Long> usersAlreadyLikeKnowledge = new HashSet<>();
     private LocalDateTime creationDate;
 
-    public void copy(Knowledge knowledge) {
-        this.category = knowledge.category;
-        this.text = knowledge.text;
-        this.hashtags = knowledge.hashtags;
-    }
-
     public SendMessage toMessage(Long viewerId) {
         final SendMessage message = new SendMessage();
         message.setText(getText());
