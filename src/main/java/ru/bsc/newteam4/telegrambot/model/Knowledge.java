@@ -8,11 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Data
 public class Knowledge {
@@ -23,7 +19,6 @@ public class Knowledge {
     private String text;
     private List<MessageEntity> messageEntities;
     private List<String> hashtags;
-    private Long likes = 0L;
     private Set<Long> usersAlreadyLikeKnowledge = new HashSet<>();
     private LocalDateTime creationDate;
     private String discussionLink;
@@ -47,7 +42,7 @@ public class Knowledge {
         keyboard.add(
             InlineKeyboardButton.builder()
                 .callbackData("like_" + id)
-                .text(getLikes() + " ❤️")
+                .text(usersAlreadyLikeKnowledge.size() + " ❤️")
                 .build()
         );
         if (discussionLink != null) {

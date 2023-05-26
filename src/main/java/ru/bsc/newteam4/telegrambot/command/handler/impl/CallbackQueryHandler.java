@@ -135,10 +135,8 @@ public class CallbackQueryHandler implements UpdateHandler {
             final Long userId = query.getFrom().getId();
             final Set<Long> usersAlreadyLikeKnowledge = knowledge.getUsersAlreadyLikeKnowledge();
             if (usersAlreadyLikeKnowledge.contains(userId)) {
-                knowledge.setLikes(knowledge.getLikes() - 1L);
                 usersAlreadyLikeKnowledge.remove(userId);
             } else {
-                knowledge.setLikes(knowledge.getLikes() + 1L);
                 usersAlreadyLikeKnowledge.add(userId);
             }
             repository.save(knowledge);

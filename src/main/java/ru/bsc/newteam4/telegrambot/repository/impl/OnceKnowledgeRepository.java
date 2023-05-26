@@ -3,7 +3,7 @@ package ru.bsc.newteam4.telegrambot.repository.impl;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import ru.bsc.newteam4.telegrambot.config.StorageProperties;
 import ru.bsc.newteam4.telegrambot.model.Category;
@@ -11,11 +11,7 @@ import ru.bsc.newteam4.telegrambot.model.Knowledge;
 import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +26,7 @@ import static java.util.Comparator.comparingLong;
 public class OnceKnowledgeRepository implements KnowledgeRepository {
 
     private final ObjectMapper mapper = new ObjectMapper()
-        .registerModules(new JSR310Module())
+        .registerModules(new JavaTimeModule())
         .enable(SerializationFeature.INDENT_OUTPUT)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     private final Map<String, Knowledge> storage = new HashMap<>();
@@ -78,7 +74,7 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
     @Override
     public List<Knowledge> getBestByCategory(Category category) {
         return getByCategory(category).stream()
-            .sorted(comparingLong(Knowledge::getLikes))
+            .sorted(comparingLong(k -> k.getUsersAlreadyLikeKnowledge().size()))
             .collect(Collectors.toList());
     }
 
@@ -102,7 +98,6 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
             final Knowledge knowledge = storage.get(value.getId());
             knowledge.setCategory(value.getCategory());
             knowledge.setText(value.getText());
-            knowledge.setLikes(value.getLikes());
             knowledge.setAuthorId(value.getAuthorId());
             knowledge.setHashtags(value.getHashtags());
             knowledge.setMessageEntities(value.getMessageEntities());
