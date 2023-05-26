@@ -136,9 +136,9 @@ public class CallbackQueryHandler implements UpdateHandler {
                 message
             );
         } else if (query.getData().startsWith("like_")) {
-            final String id = query.getData().substring(5);
+            final String id = query.getData().replaceAll("like_", "");
             final Knowledge knowledge = repository.getById(id);
-            final Long userId = update.getCallbackQuery().getMessage().getFrom().getId();
+            final Long userId = query.getMessage().getFrom().getId();
             final Set<Long> usersAlreadyLikeKnowledge = knowledge.getUsersAlreadyLikeKnowledge();
             if (usersAlreadyLikeKnowledge.contains(userId)) {
                 knowledge.setLikes(knowledge.getLikes() - 1L);
@@ -148,6 +148,15 @@ public class CallbackQueryHandler implements UpdateHandler {
                 usersAlreadyLikeKnowledge.add(userId);
             }
             repository.save(knowledge);
+
+            return List.of(
+                new AnswerCallbackQuery(query.getId()),
+                EditMessageReplyMarkup.builder()
+                    .chatId(query.getMessage().getChatId())
+                    .messageId(query.getMessage().getMessageId())
+                    .replyMarkup(new InlineKeyboardMarkup(List.of(knowledge.createKeyboard(userId))))
+                    .build()
+            );
         }
         return List.of();
     }

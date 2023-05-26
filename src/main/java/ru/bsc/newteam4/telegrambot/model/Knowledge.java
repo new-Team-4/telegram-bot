@@ -34,6 +34,14 @@ public class Knowledge {
     }
 
     public SendMessage toMessage(Long viewerId) {
+        final SendMessage message = new SendMessage();
+        message.setText(getText());
+        message.setEntities(getMessageEntities());
+        message.setReplyMarkup(new InlineKeyboardMarkup(List.of(createKeyboard(viewerId))));
+        return message;
+    }
+
+    public List<InlineKeyboardButton> createKeyboard(Long viewerId) {
         final List<InlineKeyboardButton> keyboard = new ArrayList<>();
         keyboard.add(
             InlineKeyboardButton.builder()
@@ -55,12 +63,7 @@ public class Knowledge {
                     .build()
             );
         }
-
-        final SendMessage message = new SendMessage();
-        message.setText(getText());
-        message.setEntities(getMessageEntities());
-        message.setReplyMarkup(new InlineKeyboardMarkup(List.of(keyboard)));
-        return message;
+        return keyboard;
     }
 
     @JsonIgnore
