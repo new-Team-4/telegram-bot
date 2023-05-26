@@ -21,4 +21,6 @@ public interface KnowledgeRepository {
 
     void save(Knowledge value);
 
+    void remove(String id);
+
 }

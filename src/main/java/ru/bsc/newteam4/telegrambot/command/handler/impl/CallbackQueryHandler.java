@@ -137,24 +137,26 @@ public class CallbackQueryHandler implements UpdateHandler {
         } else if (query.getData().startsWith("like_")) {
             final Knowledge knowledge = repository.getById(getKnowledgeId(query.getData()));
             final Long userId = query.getFrom().getId();
-            final Set<Long> usersAlreadyLikeKnowledge = knowledge.getUsersAlreadyLikeKnowledge();
-            if (usersAlreadyLikeKnowledge.contains(userId)) {
-                knowledge.setLikes(knowledge.getLikes() - 1L);
-                usersAlreadyLikeKnowledge.remove(userId);
-            } else {
-                knowledge.setLikes(knowledge.getLikes() + 1L);
-                usersAlreadyLikeKnowledge.add(userId);
-            }
-            repository.save(knowledge);
+            if (knowledge != null) {
+                final Set<Long> usersAlreadyLikeKnowledge = knowledge.getUsersAlreadyLikeKnowledge();
+                if (usersAlreadyLikeKnowledge.contains(userId)) {
+                    knowledge.setLikes(knowledge.getLikes() - 1L);
+                    usersAlreadyLikeKnowledge.remove(userId);
+                } else {
+                    knowledge.setLikes(knowledge.getLikes() + 1L);
+                    usersAlreadyLikeKnowledge.add(userId);
+                }
+                repository.save(knowledge);
 
-            return List.of(
-                new AnswerCallbackQuery(query.getId()),
-                EditMessageReplyMarkup.builder()
-                    .chatId(query.getMessage().getChatId())
-                    .messageId(query.getMessage().getMessageId())
-                    .replyMarkup(new InlineKeyboardMarkup(List.of(knowledge.createKeyboard(userId))))
-                    .build()
-            );
+                return List.of(
+                    new AnswerCallbackQuery(query.getId()),
+                    EditMessageReplyMarkup.builder()
+                        .chatId(query.getMessage().getChatId())
+                        .messageId(query.getMessage().getMessageId())
+                        .replyMarkup(new InlineKeyboardMarkup(List.of(knowledge.createKeyboard(userId))))
+                        .build()
+                );
+            }
         } else if (query.getData().startsWith("edit_")) {
             final String id = getKnowledgeId(query.getData());
             final PublishContext context = new PublishContext();
@@ -165,6 +167,15 @@ public class CallbackQueryHandler implements UpdateHandler {
                 SendMessage.builder()
                     .chatId(query.getMessage().getChatId())
                     .text("Введите новый текст поста")
+                    .build()
+            );
+        } else if (query.getData().startsWith("remove_")) {
+            final String id = getKnowledgeId(query.getData());
+            repository.remove(id);
+            return List.of(
+                SendMessage.builder()
+                    .chatId(query.getMessage().getChatId())
+                    .text("Пост удален ✌")
                     .build()
             );
         }

@@ -13,6 +13,7 @@ import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -115,14 +116,34 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
         saveToFiles();
     }
 
+    @Override
+    public void remove(String id) {
+        storage.remove(id);
+        saveToFiles();
+    }
+
     private synchronized void saveToFiles() {
         try {
-            for (Knowledge knowledge : storage.values()) {
+            final Path storageLocation = Path.of(storageProperties.getLocation());
+            deleteDirectoryRecursion(storageLocation);
+            Files.createDirectory(storageLocation);
+            for (Knowledge knowledge : this.storage.values()) {
                 final Path path = Path.of(storageProperties.getLocation(), knowledge.getId() + ".json");
                 mapper.writeValue(path.toFile(), knowledge);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    void deleteDirectoryRecursion(Path path) throws IOException {
+        if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+            try (DirectoryStream<Path> entries = Files.newDirectoryStream(path)) {
+                for (Path entry : entries) {
+                    deleteDirectoryRecursion(entry);
+                }
+            }
+        }
+        Files.delete(path);
     }
 }

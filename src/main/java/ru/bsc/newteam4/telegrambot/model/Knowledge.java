@@ -56,6 +56,12 @@ public class Knowledge {
                     .text("✏️")
                     .build()
             );
+            keyboard.add(
+                InlineKeyboardButton.builder()
+                    .callbackData("remove_" + id)
+                    .text("\uD83D\uDDD1")
+                    .build()
+            );
         }
         return keyboard;
     }
