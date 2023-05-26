@@ -73,13 +73,23 @@ public class CallbackQueryHandler implements UpdateHandler {
                             case BY_LIKES -> repository.getBestByCategory(category);
                             case BY_TIME -> repository.getNewestByCategory(category);
                         };
-                        if (knowledge.size() > properties.getCountToShow()) {
+                        if (knowledge.size() >= properties.getCountToShow()) {
+                            final List<List<InlineKeyboardButton>> keyboard = knowledge.stream()
+                                .map(k -> InlineKeyboardButton.builder()
+                                    .callbackData("show_" + k.getId())
+                                    .text(k.getPreviewText())
+                                    .build()
+                                )
+                                .map(List::of)
+                                .toList();
+
                             return List.of(
                                 answerCallbackQuery,
                                 SendMessage.builder()
-                                .chatId(query.getMessage().getChatId())
-                                .text("\uD83D\uDE13")
-                                .build()
+                                    .chatId(query.getMessage().getChatId())
+                                    .text("Выбирите интересующий вас пост")
+                                    .replyMarkup(new InlineKeyboardMarkup(keyboard))
+                                    .build()
                             );
                         } else {
                             final List<SendMessage> messages = knowledge.stream()
@@ -115,6 +125,15 @@ public class CallbackQueryHandler implements UpdateHandler {
                     return List.of(answerCallbackQuery, edit);
                 }
             }
+        } else if (query.getData().startsWith("show_")) {
+            final String id = query.getData().replaceAll("show_", "");
+            final Knowledge knowledge = repository.getById(id);
+            final SendMessage message = knowledge.toMessage(query.getFrom().getId());
+            message.setChatId(query.getMessage().getChatId());
+            return List.of(
+                new AnswerCallbackQuery(query.getId()),
+                message
+            );
         }
         return List.of();
     }

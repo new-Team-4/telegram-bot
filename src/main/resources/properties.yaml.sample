@@ -48,3 +48,4 @@ telegramProperties:
           - name: Прямые линии
             sort: BY_LIKES
       - name: FAQ
+        sort: BY_LIKES

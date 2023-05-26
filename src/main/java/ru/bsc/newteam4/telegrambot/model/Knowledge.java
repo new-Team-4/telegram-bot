@@ -1,5 +1,6 @@
 package ru.bsc.newteam4.telegrambot.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
@@ -60,5 +61,10 @@ public class Knowledge {
         message.setEntities(getMessageEntities());
         message.setReplyMarkup(new InlineKeyboardMarkup(List.of(keyboard)));
         return message;
+    }
+
+    @JsonIgnore
+    public String getPreviewText() {
+        return text.substring(0, Math.min(25, text.length()));
     }
 }
