@@ -1,6 +1,5 @@
 package ru.bsc.newteam4.telegrambot.command.resolver.impl;
 
-import lombok.RequiredArgsConstructor;
 import org.telegram.telegrambots.meta.api.objects.EntityType;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
@@ -14,7 +13,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
 public class DefaultUpdateHandlerResolver implements UpdateHandlerResolver {
     private final Map<UpdateCategory, UpdateHandler> handlerMap;
 

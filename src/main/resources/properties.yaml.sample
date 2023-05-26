@@ -1,3 +1,12 @@
 telegramProperties:
   botName: test-bot
   token:
+  menu:
+    message:
+    categories:
+      - name: Корневая категория
+        categories:
+          - name: 'Подкатегория 1'
+            sort: BY_LIKES
+          - name: 'Подкатегория 2'
+            sort: BY_TIME
