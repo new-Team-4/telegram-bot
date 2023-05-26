@@ -1,7 +1,7 @@
 package ru.bsc.newteam4.telegrambot.repository.impl;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,8 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
 
     private final ObjectMapper mapper = new ObjectMapper()
         .registerModules(new JSR310Module())
-        .enable(SerializationFeature.INDENT_OUTPUT);
+        .enable(SerializationFeature.INDENT_OUTPUT)
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     private final Map<String, Knowledge> storage = new HashMap<>();
     private final StorageProperties storageProperties;
 
@@ -107,7 +108,7 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
     private synchronized void saveToFiles() {
         try {
             for (Knowledge knowledge : storage.values()) {
-                final Path path = Path.of(storageProperties.getLocation(), knowledge.getId());
+                final Path path = Path.of(storageProperties.getLocation(), knowledge.getId() + ".json");
                 mapper.writeValue(path.toFile(), knowledge);
             }
         } catch (IOException e) {
