@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.EntityType;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.bsc.newteam4.telegrambot.command.UpdateCategory;
 import ru.bsc.newteam4.telegrambot.command.handler.UpdateHandler;
@@ -14,7 +16,6 @@ import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -23,7 +24,6 @@ public class PlainMessageHandler implements UpdateHandler {
 
     private final Map<Long, PublishContext> readyChatToPublishMap;
     private final KnowledgeRepository knowledgeRepository;
-    private final Pattern HASH_TAG_REGEX = Pattern.compile("(#\\w+)");
 
     @Override
     public UpdateCategory getCategory() {
@@ -40,7 +40,7 @@ public class PlainMessageHandler implements UpdateHandler {
             knowledge.setText(text);
             knowledge.setMessageEntities(update.getMessage().getEntities());
             knowledge.setCategory(publishContext.getCategory());
-            knowledge.setHashtags(extractHashTag(text));
+            knowledge.setHashtags(extractHashTags(text, update.getMessage().getEntities()));
             knowledgeRepository.save(knowledge);
             readyChatToPublishMap.remove(chatId);
 
@@ -53,10 +53,13 @@ public class PlainMessageHandler implements UpdateHandler {
         }
     }
 
-    private List<String> extractHashTag(String text) {
-        return HASH_TAG_REGEX.matcher(text)
-            .results()
-            .map(r -> r.group(1))
+    private List<String> extractHashTags(String text, List<MessageEntity> entities) {
+        if (entities == null) {
+            return List.of();
+        }
+        return entities.stream()
+            .filter(messageEntity -> EntityType.HASHTAG.equals(messageEntity.getType()))
+            .map(MessageEntity::getText)
             .collect(Collectors.toList());
     }
 
