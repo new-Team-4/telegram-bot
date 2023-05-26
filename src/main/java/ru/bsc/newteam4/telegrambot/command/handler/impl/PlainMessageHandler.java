@@ -39,6 +39,7 @@ public class PlainMessageHandler implements UpdateHandler {
             final String text = update.getMessage().getText();
             final PublishContext publishContext = readyChatToPublishMap.get(chatId);
             final Knowledge knowledge = new Knowledge();
+            knowledge.setAuthorId(update.getMessage().getFrom().getId());
             knowledge.setText(text);
             knowledge.setMessageEntities(update.getMessage().getEntities());
             knowledge.setCategory(publishContext.getCategory());

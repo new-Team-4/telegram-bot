@@ -10,6 +10,7 @@ import java.util.List;
 public class Knowledge {
 
     private String id;
+    private Long authorId;
     private Category category;
     private String text;
     private List<MessageEntity> messageEntities;
