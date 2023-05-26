@@ -138,7 +138,7 @@ public class CallbackQueryHandler implements UpdateHandler {
         } else if (query.getData().startsWith("like_")) {
             final String id = query.getData().replaceAll("like_", "");
             final Knowledge knowledge = repository.getById(id);
-            final Long userId = query.getMessage().getFrom().getId();
+            final Long userId = query.getFrom().getId();
             final Set<Long> usersAlreadyLikeKnowledge = knowledge.getUsersAlreadyLikeKnowledge();
             if (usersAlreadyLikeKnowledge.contains(userId)) {
                 knowledge.setLikes(knowledge.getLikes() - 1L);
