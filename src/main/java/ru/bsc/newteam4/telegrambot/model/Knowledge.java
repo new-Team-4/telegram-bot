@@ -17,4 +17,9 @@ public class Knowledge {
     private Long likes = 0L;
     private LocalDateTime creationDate;
 
+    public void copy(Knowledge knowledge) {
+        this.category = knowledge.category;
+        this.text = knowledge.text;
+        this.hashtags = knowledge.hashtags;
+    }
 }

@@ -12,7 +12,6 @@ import ru.bsc.newteam4.telegrambot.config.ApplicationProperties;
 import ru.bsc.newteam4.telegrambot.config.loader.PropertiesLoader;
 import ru.bsc.newteam4.telegrambot.model.PublishContext;
 import ru.bsc.newteam4.telegrambot.repository.impl.OnceKnowledgeRepository;
-import ru.bsc.newteam4.telegrambot.storage.impl.InMemoryStorage;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,13 +27,15 @@ public class Application {
             options.setAllowedUpdates(List.of("message", "callback_query"));
 
             final Map<Long, PublishContext> readyChatsToPublish = new HashMap<>();
+            final OnceKnowledgeRepository onceKnowledgeRepository = new OnceKnowledgeRepository();
+            onceKnowledgeRepository.loadFromMemory();
             final TelegramBot bot = new TelegramBot(
                 options,
                 properties.getTelegramProperties(),
                 new DefaultUpdateHandlerResolver(List.of(
                     new CallbackQueryHandler(properties.getTelegramProperties().getMenu(), readyChatsToPublish),
                     new CommandHandler(properties.getTelegramProperties().getMenu()),
-                    new PlainMessageHandler(readyChatsToPublish, new OnceKnowledgeRepository(new InMemoryStorage<>()))
+                    new PlainMessageHandler(readyChatsToPublish, onceKnowledgeRepository)
                 ))
             );
             api.registerBot(bot);
