@@ -59,19 +59,18 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
     }
 
     @Override
-    public List<Knowledge> searchByHashtag(String hashtag) {
+    public List<Knowledge> searchByHashtag(List<String> hashtags) {
         return storage.values()
             .stream()
-            .filter(knowledge -> knowledge.getHashtags().stream().anyMatch(ht -> ht.equals(hashtag)))
+            .filter(knowledge -> knowledge.getHashtags().stream().anyMatch(hashtags::contains))
             .collect(Collectors.toList());
     }
 
     @Override
-    public List<Knowledge> searchByKeywords(String keywords) {
-        final List<String> keywordsAsArray = List.of(keywords.split(" "));
+    public List<Knowledge> searchByKeywords(List<String> keywords) {
         return storage.values()
             .stream()
-            .filter(knowledge -> keywordsAsArray.stream().anyMatch(kw -> knowledge.getText().contains(kw)))
+            .filter(knowledge -> keywords.stream().anyMatch(kw -> knowledge.getText().contains(kw)))
             .collect(Collectors.toList());
     }
 

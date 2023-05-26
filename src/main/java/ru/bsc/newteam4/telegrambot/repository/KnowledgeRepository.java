@@ -11,9 +11,9 @@ public interface KnowledgeRepository {
 
     Knowledge getById(String id);
 
-    List<Knowledge> searchByHashtag(String hashtag);
+    List<Knowledge> searchByHashtag(List<String> hashtags);
 
-    List<Knowledge> searchByKeywords(String keywords);
+    List<Knowledge> searchByKeywords(List<String> keywords);
 
     List<Knowledge> getBestByCategory(Category category);
 

@@ -27,8 +27,6 @@ public class DefaultUpdateHandlerResolver implements UpdateHandlerResolver {
             final Message message = update.getMessage();
             if (message.isCommand()) {
                 return handlerMap.get(UpdateCategory.COMMAND);
-            } else if (isHashTag(message)) {
-                return handlerMap.get(UpdateCategory.HASH_TAG);
             } else {
                 return handlerMap.get(UpdateCategory.PLAIN_MESSAGE);
             }

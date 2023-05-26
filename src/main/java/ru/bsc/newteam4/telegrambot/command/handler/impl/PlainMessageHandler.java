@@ -8,13 +8,18 @@ import org.telegram.telegrambots.meta.api.objects.EntityType;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.bsc.newteam4.telegrambot.command.UpdateCategory;
 import ru.bsc.newteam4.telegrambot.command.handler.UpdateHandler;
+import ru.bsc.newteam4.telegrambot.config.TelegramProperties;
 import ru.bsc.newteam4.telegrambot.model.Knowledge;
 import ru.bsc.newteam4.telegrambot.model.PublishContext;
 import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,6 +30,7 @@ public class PlainMessageHandler implements UpdateHandler {
 
     private final Map<Long, PublishContext> readyChatToPublishMap;
     private final KnowledgeRepository knowledgeRepository;
+    private final TelegramProperties telegramProperties;
 
     @Override
     public UpdateCategory getCategory() {
@@ -55,7 +61,50 @@ public class PlainMessageHandler implements UpdateHandler {
             sendMessage.setChatId(message.getChatId());
             return List.of(sendMessage);
         } else {
-            return List.of();
+            List<BotApiMethod<? extends Serializable>> methods = new ArrayList<>();
+            final List<String> words = Arrays.asList(update.getMessage().getText().split(" "));
+            final List<Knowledge> knowledges;
+            final String searchType;
+            if (words.stream().allMatch(w -> w.startsWith("#"))) {
+                knowledges = knowledgeRepository.searchByHashtag(words);
+                searchType = "хэштэгам";
+            } else {
+                knowledges = knowledgeRepository.searchByKeywords(words);
+                searchType = "ключевым словам";
+            }
+            if (knowledges.size() >= telegramProperties.getCountToShow()) {
+                final List<List<InlineKeyboardButton>> keyboard = knowledges.stream()
+                    .map(k -> InlineKeyboardButton.builder()
+                        .callbackData("show_" + k.getId())
+                        .text(k.getPreviewText())
+                        .build()
+                    )
+                    .map(List::of)
+                    .toList();
+                return List.of(
+                    SendMessage.builder()
+                        .chatId(update.getMessage().getChatId())
+                        .text("Вот все найденные посты по " + searchType)
+                        .replyMarkup(new InlineKeyboardMarkup(keyboard))
+                        .build()
+                );
+            } else {
+                final List<SendMessage> messages = knowledges.stream()
+                    .map(k -> k.toMessage(update.getMessage().getFrom().getId()))
+                    .peek(m -> m.setChatId(update.getMessage().getChatId()))
+                    .toList();
+                if (messages.isEmpty()) {
+                    methods = List.of(
+                        SendMessage.builder()
+                            .chatId(update.getMessage().getChatId())
+                            .text("Ничего не найдено :( ")
+                            .build()
+                    );
+                } else {
+                    methods.addAll(messages);
+                }
+                return methods;
+            }
         }
     }
 

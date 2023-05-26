@@ -4,6 +4,5 @@ public enum UpdateCategory {
     DEFAULT,
     COMMAND,
     CALLBACK_QUERY,
-    HASH_TAG,
     PLAIN_MESSAGE
 }
