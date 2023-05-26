@@ -35,14 +35,14 @@ public class CommandHandler implements UpdateHandler {
     public List<BotApiMethod<? extends Serializable>> handle(Update update) {
         final String command = getCommand(update.getMessage());
         switch (command) {
-            case "menu": {
+            case "menu" -> {
                 return List.of(createMenuMessage(update));
             }
-            case "publish": {
+            case "publish" -> {
                 context.put(update.getMessage().getChatId(), new PublishContext());
                 return List.of(createMenuMessage(update));
             }
-            default: {
+            default -> {
                 return List.of();
             }
         }
