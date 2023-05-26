@@ -23,7 +23,7 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
     private final Map<String, Knowledge> storage = new HashMap<>();
 
     @Override
-    public synchronized void loadFromMemory() {
+    public void loadFromMemory() {
 
     }
 
