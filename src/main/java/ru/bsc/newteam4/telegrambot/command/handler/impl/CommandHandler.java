@@ -35,6 +35,14 @@ public class CommandHandler implements UpdateHandler {
     public List<BotApiMethod<? extends Serializable>> handle(Update update) {
         final String command = getCommand(update.getMessage());
         switch (command) {
+            case "start", "help" -> {
+                return List.of(
+                    SendMessage.builder()
+                        .chatId(update.getMessage().getChatId())
+                        .text("Текст справки будет тут...") //TODO
+                        .build()
+                );
+            }
             case "cancel" -> {
                 final Long chatId = update.getMessage().getChatId();
                 final PublishContext removed = context.remove(chatId);

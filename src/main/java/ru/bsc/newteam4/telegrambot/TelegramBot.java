@@ -4,7 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
+import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.bsc.newteam4.telegrambot.command.handler.UpdateHandler;
 import ru.bsc.newteam4.telegrambot.command.resolver.UpdateHandlerResolver;
@@ -27,6 +30,22 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Override
     public String getBotUsername() {
         return botName;
+    }
+
+    @Override
+    public void onRegister() {
+        try {
+            execute(SetMyCommands.builder()
+                .scope(new BotCommandScopeDefault())
+                .command(new BotCommand("help", "Помощь"))
+                .command(new BotCommand("menu", "Показать разделы"))
+                .command(new BotCommand("publish", "Опубликовать запись"))
+                .command(new BotCommand("cancel", "Отменить операцию"))
+                .build()
+            );
+        } catch (TelegramApiException e) {
+            log.error("Error while setting my commands", e);
+        }
     }
 
     @Override
