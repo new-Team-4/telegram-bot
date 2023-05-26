@@ -84,7 +84,7 @@ public class CallbackQueryHandler implements UpdateHandler {
                             );
                         } else {
                             final List<SendMessage> messages = knowledge.stream()
-                                .map(this::toMessage)
+                                .map(Knowledge::toMessage)
                                 .peek(m -> m.setChatId(query.getMessage().getChatId()))
                                 .toList();
                             final List<BotApiMethod<? extends Serializable>> methods = new ArrayList<>();
@@ -118,29 +118,6 @@ public class CallbackQueryHandler implements UpdateHandler {
             }
         }
         return List.of();
-    }
-
-    private SendMessage toMessage(Knowledge knowledge) {
-        final SendMessage message = new SendMessage();
-        message.setText(knowledge.getText());
-        message.setEntities(knowledge.getMessageEntities());
-        message.setReplyMarkup(new InlineKeyboardMarkup(List.of(
-            List.of(
-                InlineKeyboardButton.builder()
-                    .callbackData("like_" + knowledge.getId())
-                    .text("❤️")
-                    .build(),
-                InlineKeyboardButton.builder()
-                    .callbackData("discuss_" + knowledge.getId())
-                    .text("\uD83D\uDCAC")
-                    .build(),
-                InlineKeyboardButton.builder()
-                    .callbackData("edit_" + knowledge.getId())
-                    .text("✏️")
-                    .build()
-            )
-        )));
-        return message;
     }
 
     @Override
