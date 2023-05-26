@@ -15,7 +15,7 @@ public class Knowledge extends AbstractModel {
     private String text;
     private List<MessageEntity> messageEntities;
     private List<String> hashtags;
-    private Integer likes;
+    private Long likes;
     private LocalDateTime creationDate;
 
 }
