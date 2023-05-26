@@ -28,7 +28,7 @@ public class Application {
             options.setAllowedUpdates(List.of("message", "callback_query"));
 
             final Map<Long, PublishContext> readyChatsToPublish = new HashMap<>();
-            final KnowledgeRepository repository = new OnceKnowledgeRepository();
+            final KnowledgeRepository repository = new OnceKnowledgeRepository(properties.getStorageProperties());
             repository.loadFromMemory();
             final TelegramBot bot = new TelegramBot(
                 options,
