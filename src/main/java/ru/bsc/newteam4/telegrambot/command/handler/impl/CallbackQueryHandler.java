@@ -257,8 +257,7 @@ public class CallbackQueryHandler implements UpdateHandler {
         return List.of(
             AnswerCallbackQuery.builder()
                 .callbackQueryId(id)
-                .text("Вы не можете выполнить данную операцию над удалённым или несуществующим постом")
-                .showAlert(true)
+                .text("Данный пост был удалён 🤷‍♀️")
                 .build()
         );
     }
