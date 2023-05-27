@@ -8,5 +8,6 @@ import java.util.List;
 public class Menu {
     private String message;
     private String publishHeaderMessage;
+    private String helpMessageText;
     private List<Category> categories;
 }

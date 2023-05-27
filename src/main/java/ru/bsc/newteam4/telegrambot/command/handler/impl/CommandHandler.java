@@ -2,6 +2,7 @@ package ru.bsc.newteam4.telegrambot.command.handler.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -39,7 +40,8 @@ public class CommandHandler implements UpdateHandler {
                 return List.of(
                     SendMessage.builder()
                         .chatId(update.getMessage().getChatId())
-                        .text("Текст справки будет тут...") //TODO
+                        .text(menu.getHelpMessageText())
+                        .parseMode(ParseMode.MARKDOWN)
                         .build()
                 );
             }
