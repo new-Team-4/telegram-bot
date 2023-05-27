@@ -63,11 +63,11 @@ public class CommandHandler implements UpdateHandler {
                 }
             }
             case "menu" -> {
-                return List.of(createMenuMessage(update));
+                return List.of(createMenuMessage(update, false));
             }
             case "publish" -> {
                 context.put(update.getMessage().getChatId(), new PublishContext());
-                return List.of(createMenuMessage(update));
+                return List.of(createMenuMessage(update, true));
             }
             default -> {
                 return List.of();
@@ -75,7 +75,7 @@ public class CommandHandler implements UpdateHandler {
         }
     }
 
-    private SendMessage createMenuMessage(Update update) {
+    private SendMessage createMenuMessage(Update update, boolean publishMenu) {
         final List<Category> categories = menu.getCategories();
         final List<List<InlineKeyboardButton>> keyboard = IntStream.range(0, categories.size())
             .mapToObj(i -> InlineKeyboardButton.builder()
@@ -87,7 +87,7 @@ public class CommandHandler implements UpdateHandler {
             .toList();
         final SendMessage message = new SendMessage();
         message.setChatId(update.getMessage().getChatId());
-        message.setText(menu.getMessage());
+        message.setText(publishMenu ? menu.getPublishHeaderMessage() : menu.getMessage());
         message.setReplyMarkup(new InlineKeyboardMarkup(keyboard));
         return message;
     }

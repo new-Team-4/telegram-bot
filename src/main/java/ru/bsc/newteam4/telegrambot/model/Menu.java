@@ -7,5 +7,6 @@ import java.util.List;
 @Data
 public class Menu {
     private String message;
+    private String publishHeaderMessage;
     private List<Category> categories;
 }

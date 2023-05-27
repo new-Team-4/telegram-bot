@@ -6,6 +6,7 @@ telegramProperties:
   countToShow: 2
   menu:
     message: 'Категории'
+    publishHeaderMessage: 'Меню публикации'
     categories:
       - name: Административка
         categories:
