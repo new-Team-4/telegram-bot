@@ -60,6 +60,7 @@ public class PlainMessageHandler implements UpdateHandler {
                 knowledge.setMessageEntities(message.getCaptionEntities());
             } else {
                 knowledge.setText(message.getText());
+                knowledge.setImageId(null);
                 knowledge.setMessageEntities(message.getEntities());
             }
             knowledge.setHashtags(extractHashTags(message.getEntities()));
