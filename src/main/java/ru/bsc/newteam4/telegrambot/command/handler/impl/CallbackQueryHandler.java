@@ -158,6 +158,10 @@ public class CallbackQueryHandler implements UpdateHandler {
             );
         } else if (query.getData().startsWith("edit_")) {
             final String id = getKnowledgeId(query.getData());
+            final Knowledge knowledge = repository.getById(getKnowledgeId(query.getData()));
+            if (knowledge == null) {
+                return getOperationNotAvailableAnswer(query.getId());
+            }
             final PublishContext context = new PublishContext();
             context.setId(id);
             readyChatToPublishMap.put(query.getFrom().getId(), context);
