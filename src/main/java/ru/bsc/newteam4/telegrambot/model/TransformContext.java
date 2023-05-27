@@ -12,6 +12,5 @@ import lombok.experimental.Accessors;
 public class TransformContext {
     private final Long chatId;
     private final Long viewerId;
-    private String messagePrefix;
     private boolean withMenu = true;
 }

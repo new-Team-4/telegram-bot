@@ -66,7 +66,6 @@ public class PlainMessageHandler implements UpdateHandler {
             knowledgeRepository.save(knowledge);
 
             final TransformContext transformContext = new TransformContext(telegramProperties.getDiscussionChannel(), userId)
-                .setMessagePrefix("Новая публикация в категории: '" + knowledge.getCategory().getName() + "'\n\n")
                 .setWithMenu(false);
             final PartialBotApiMethod<Message> channelMessage = knowledge.toMessage(transformContext);
             final SendMessageWithCallback sentChannelMessageWithCallback = new SendMessageWithCallback(
