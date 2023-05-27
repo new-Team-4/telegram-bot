@@ -136,6 +136,9 @@ public class CallbackQueryHandler implements UpdateHandler {
             );
         } else if (query.getData().startsWith("like_")) {
             final Knowledge knowledge = repository.getById(getKnowledgeId(query.getData()));
+            if (knowledge == null) {
+                return getOperationNotAvailableAnswer(query.getId());
+            }
             final Long userId = query.getFrom().getId();
             final Set<Long> usersAlreadyLikeKnowledge = knowledge.getUsersAlreadyLikeKnowledge();
             if (usersAlreadyLikeKnowledge.contains(userId)) {
@@ -168,6 +171,9 @@ public class CallbackQueryHandler implements UpdateHandler {
         } else if (query.getData().startsWith("remove_")) {
             final String id = getKnowledgeId(query.getData());
             final Knowledge knowledge = repository.getById(id);
+            if (knowledge == null) {
+                return getOperationNotAvailableAnswer(query.getId());
+            }
             repository.remove(id);
             if (knowledge.getImageId() != null) {
                 return List.of(
@@ -232,5 +238,15 @@ public class CallbackQueryHandler implements UpdateHandler {
 
     private String getKnowledgeId(String data) {
         return data.substring(data.indexOf('_') + 1);
+    }
+
+    private List<PartialBotApiMethod<? extends Serializable>> getOperationNotAvailableAnswer(String id) {
+        return List.of(
+            AnswerCallbackQuery.builder()
+                .callbackQueryId(id)
+                .text("Вы не можете выполнить данную операцию над удалённым или несуществующим постом")
+                .showAlert(true)
+                .build()
+        );
     }
 }
