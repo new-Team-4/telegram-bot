@@ -63,7 +63,7 @@ public class CallbackQueryHandler implements UpdateHandler {
                         final EditMessageText edit = new EditMessageText();
                         edit.setChatId(query.getMessage().getChatId());
                         edit.setMessageId(query.getMessage().getMessageId());
-                        edit.setText(String.format("Вы выбрали категорию %s, ваша публикация будет размещена в этой категории. Пожалуйста, напишите Ваш текст ниже\n", category.getName()));
+                        edit.setText(String.format("Вы выбрали категорию '%s', ваша публикация будет размещена тут 😊. Пожалуйста, напишите текст публикации ниже\n", category.getName()));
                         edit.setReplyMarkup(new InlineKeyboardMarkup(List.of()));
                         return List.of(answerCallbackQuery, edit);
                     } else {
