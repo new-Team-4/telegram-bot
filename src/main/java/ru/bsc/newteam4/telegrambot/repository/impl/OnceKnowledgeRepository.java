@@ -11,11 +11,17 @@ import ru.bsc.newteam4.telegrambot.model.Knowledge;
 import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.nio.file.Files.createDirectory;
+import static java.nio.file.Files.exists;
+import static java.nio.file.Files.newDirectoryStream;
+import static java.nio.file.Paths.get;
 import static java.util.Comparator.comparing;
 
 @RequiredArgsConstructor
@@ -31,13 +37,14 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
     @Override
     public void loadFromMemory() {
         try {
-            final Path storageLocation = Paths.get(storageProperties.getLocation());
-            if (!Files.exists(storageLocation)) {
-                Files.createDirectory(storageLocation);
+            final Path storageLocation = get(storageProperties.getLocation());
+            if (!exists(storageLocation)) {
+                createDirectory(storageLocation);
             }
-            try (final DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(storageProperties.getLocation()), "*.json")) {
-                for (Path path : stream) {
-                    final Knowledge knowledge = mapper.readValue(path.toFile(), Knowledge.class);
+            try (final DirectoryStream<Path> stream = newDirectoryStream(storageLocation, "*.json")) {
+                Knowledge knowledge;
+                for (final Path path : stream) {
+                    knowledge = mapper.readValue(path.toFile(), Knowledge.class);
                     storage.put(knowledge.getId(), knowledge);
                 }
             }
@@ -97,37 +104,28 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
         }
         value.setEditDateTime(LocalDateTime.now());
         storage.put(value.getId(), value);
-        saveToFiles();
+        saveToFile(value);
     }
 
     @Override
     public void remove(String id) {
         storage.remove(id);
-        saveToFiles();
-    }
-
-    private synchronized void saveToFiles() {
         try {
-            final Path storageLocation = Path.of(storageProperties.getLocation());
-            deleteDirectoryRecursion(storageLocation);
-            Files.createDirectory(storageLocation);
-            for (Knowledge knowledge : this.storage.values()) {
-                final Path path = Path.of(storageProperties.getLocation(), knowledge.getId() + ".json");
-                mapper.writeValue(path.toFile(), knowledge);
-            }
+            Files.deleteIfExists(getKnowledgePath(id));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    void deleteDirectoryRecursion(Path path) throws IOException {
-        if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
-            try (DirectoryStream<Path> entries = Files.newDirectoryStream(path)) {
-                for (Path entry : entries) {
-                    deleteDirectoryRecursion(entry);
-                }
-            }
+    private synchronized void saveToFile(Knowledge knowledge) {
+        try {
+            mapper.writeValue(getKnowledgePath(knowledge.getId()).toFile(), knowledge);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        Files.delete(path);
+    }
+
+    private Path getKnowledgePath(String id) {
+        return get(storageProperties.getLocation(), id + ".json");
     }
 }
