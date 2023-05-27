@@ -33,10 +33,11 @@ public class Knowledge {
     private String discussionLink;
 
     public PartialBotApiMethod<Message> toMessage(TransformContext context) {
+        final String messageText = text + "\n\nОпубликовано " + author.getName() + " " + creationDate.format(DATE_TIME_FORMATTER);
         if (imageId != null) {
             final SendPhoto sendPhoto = new SendPhoto();
             sendPhoto.setChatId(context.getChatId());
-            sendPhoto.setCaption(text);
+            sendPhoto.setCaption(messageText);
             sendPhoto.setPhoto(new InputFile(imageId));
             sendPhoto.setCaptionEntities(messageEntities);
             if (context.isWithMenu()) {
@@ -46,7 +47,7 @@ public class Knowledge {
         } else {
             final SendMessage message = new SendMessage();
             message.setChatId(context.getChatId());
-            message.setText(text + "\n\nОпубликовано " + author.getName() + " " + creationDate.format(DATE_TIME_FORMATTER));
+            message.setText(messageText);
             message.setEntities(messageEntities);
             if (context.isWithMenu()) {
                 message.setReplyMarkup(new InlineKeyboardMarkup(List.of(createKeyboard(context.getViewerId()))));
