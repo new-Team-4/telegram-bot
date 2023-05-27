@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -166,16 +167,31 @@ public class CallbackQueryHandler implements UpdateHandler {
             );
         } else if (query.getData().startsWith("remove_")) {
             final String id = getKnowledgeId(query.getData());
+            final Knowledge knowledge = repository.getById(id);
             repository.remove(id);
-            return List.of(
-                new AnswerCallbackQuery(query.getId()),
-                EditMessageText.builder()
-                    .chatId(query.getMessage().getChatId())
-                    .messageId(query.getMessage().getMessageId())
-                    .replyMarkup(new InlineKeyboardMarkup(List.of()))
-                    .text("Ваш пост удалён ✌")
-                    .build()
-            );
+            if (knowledge.getImageId() != null) {
+                return List.of(
+                    new AnswerCallbackQuery(query.getId()),
+                    DeleteMessage.builder()
+                        .chatId(query.getMessage().getChatId())
+                        .messageId(query.getMessage().getMessageId())
+                        .build(),
+                    SendMessage.builder()
+                        .chatId(query.getMessage().getChatId())
+                        .text("Ваш пост удалён ✌")
+                        .build()
+                );
+            } else {
+                return List.of(
+                    new AnswerCallbackQuery(query.getId()),
+                    EditMessageText.builder()
+                        .chatId(query.getMessage().getChatId())
+                        .messageId(query.getMessage().getMessageId())
+                        .replyMarkup(new InlineKeyboardMarkup(List.of()))
+                        .text("Ваш пост удалён ✌")
+                        .build()
+                );
+            }
         }
         return List.of();
     }
