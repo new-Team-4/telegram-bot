@@ -112,18 +112,12 @@ public class TelegramBot extends TelegramLongPollingBot {
         if (update.getMessage() != null) {
             return update.getMessage().getFrom().getId();
         }
-        if (update.getCallbackQuery() != null) {
-            return update.getCallbackQuery().getFrom().getId();
-        }
         return null;
     }
 
     private Long extractChatId(Update update) {
         if (update.getMessage() != null) {
             return update.getMessage().getChat().getId();
-        }
-        if (update.getCallbackQuery() != null) {
-            return update.getCallbackQuery().getMessage().getChat().getId();
         }
         return null;
     }
