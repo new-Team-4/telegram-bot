@@ -12,13 +12,15 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Data
 public class Knowledge {
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy в HH:mm");
 
     private String id;
-    private Long authorId;
+    private UserInfo author;
     private Category category;
     private KnowledgeStatus status;
     private String text;
@@ -27,6 +29,7 @@ public class Knowledge {
     private List<String> hashtags;
     private Set<Long> usersAlreadyLikeKnowledge = new HashSet<>();
     private LocalDateTime creationDate;
+    private LocalDateTime editDateTime;
     private String discussionLink;
 
     public PartialBotApiMethod<Message> toMessage(TransformContext context) {
@@ -43,7 +46,10 @@ public class Knowledge {
         } else {
             final SendMessage message = new SendMessage();
             message.setChatId(context.getChatId());
-            message.setText(context.getMessagePrefix() != null ? context.getMessagePrefix() + text : text);
+            message.setText(
+                (context.getMessagePrefix() != null ? context.getMessagePrefix() + text : text)
+                + "\n\nОпубликовано " + author.getName() + " " + creationDate.format(DATE_TIME_FORMATTER)
+            );
             message.setEntities(messageEntities);
             if (context.isWithMenu()) {
                 message.setReplyMarkup(new InlineKeyboardMarkup(List.of(createKeyboard(context.getViewerId()))));
@@ -68,7 +74,7 @@ public class Knowledge {
                     .build()
             );
         }
-        if (Objects.equals(authorId, viewerId)) {
+        if (Objects.equals(author.getId(), viewerId)) {
             keyboard.add(
                 InlineKeyboardButton.builder()
                     .callbackData("edit_" + id)

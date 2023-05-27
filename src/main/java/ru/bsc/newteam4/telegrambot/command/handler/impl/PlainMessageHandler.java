@@ -13,10 +13,8 @@ import ru.bsc.newteam4.telegrambot.SendMessageWithCallback;
 import ru.bsc.newteam4.telegrambot.command.UpdateCategory;
 import ru.bsc.newteam4.telegrambot.command.handler.UpdateHandler;
 import ru.bsc.newteam4.telegrambot.config.TelegramProperties;
-import ru.bsc.newteam4.telegrambot.model.Knowledge;
-import ru.bsc.newteam4.telegrambot.model.KnowledgeStatus;
-import ru.bsc.newteam4.telegrambot.model.PublishContext;
-import ru.bsc.newteam4.telegrambot.model.TransformContext;
+import ru.bsc.newteam4.telegrambot.model.*;
+import ru.bsc.newteam4.telegrambot.model.UserInfo;
 import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 
 import java.io.Serializable;
@@ -49,7 +47,7 @@ public class PlainMessageHandler implements UpdateHandler {
             if (context.getCategory() != null) {
                 knowledge.setCategory(context.getCategory());
             }
-            knowledge.setAuthorId(userId);
+            knowledge.setAuthor(extractAuthorInfo(update));
             knowledge.setStatus(KnowledgeStatus.PUBLISHED);
             if (message.getPhoto() != null && message.getPhoto().size() > 0) {
                 final PhotoSize photo = message.getPhoto()
@@ -65,14 +63,11 @@ public class PlainMessageHandler implements UpdateHandler {
                 knowledge.setMessageEntities(message.getEntities());
             }
             knowledge.setHashtags(extractHashTags(message.getEntities()));
+            knowledgeRepository.save(knowledge);
 
-            final TransformContext transformContext = new TransformContext(
-                telegramProperties.getDiscussionChannel(),
-                userId
-            )
+            final TransformContext transformContext = new TransformContext(telegramProperties.getDiscussionChannel(), userId)
                 .setMessagePrefix("Новая публикация в категории: '" + knowledge.getCategory().getName() + "'\n\n")
                 .setWithMenu(false);
-
             final PartialBotApiMethod<Message> channelMessage = knowledge.toMessage(transformContext);
             final SendMessageWithCallback sentChannelMessageWithCallback = new SendMessageWithCallback(
                 channelMessage,
@@ -160,5 +155,13 @@ public class PlainMessageHandler implements UpdateHandler {
             .filter(messageEntity -> EntityType.HASHTAG.equals(messageEntity.getType()))
             .map(MessageEntity::getText)
             .collect(Collectors.toList());
+    }
+
+    private UserInfo extractAuthorInfo(Update update) {
+        final User user = update.getMessage().getFrom();
+        final UserInfo author = new UserInfo();
+        author.setId(user.getId());
+        author.setName(user.getFirstName() + (user.getLastName() != null ? " " + user.getLastName() : ""));
+        return author;
     }
 }
