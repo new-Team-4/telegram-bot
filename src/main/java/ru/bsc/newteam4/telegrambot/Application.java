@@ -6,6 +6,7 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import ru.bsc.newteam4.telegrambot.command.handler.impl.CallbackQueryHandler;
 import ru.bsc.newteam4.telegrambot.command.handler.impl.CommandHandler;
+import ru.bsc.newteam4.telegrambot.command.handler.impl.DefaultHandler;
 import ru.bsc.newteam4.telegrambot.command.handler.impl.PlainMessageHandler;
 import ru.bsc.newteam4.telegrambot.command.resolver.impl.DefaultUpdateHandlerResolver;
 import ru.bsc.newteam4.telegrambot.config.ApplicationProperties;
@@ -36,7 +37,8 @@ public class Application {
                 new DefaultUpdateHandlerResolver(List.of(
                     new CallbackQueryHandler(properties.getTelegramProperties(), repository, readyChatsToPublish),
                     new CommandHandler(properties.getTelegramProperties().getMenu(), readyChatsToPublish),
-                    new PlainMessageHandler(readyChatsToPublish, repository, properties.getTelegramProperties())
+                    new PlainMessageHandler(readyChatsToPublish, repository, properties.getTelegramProperties()),
+                    new DefaultHandler()
                 ))
             );
             api.registerBot(bot);
