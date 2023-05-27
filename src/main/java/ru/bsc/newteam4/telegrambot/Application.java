@@ -4,10 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
-import ru.bsc.newteam4.telegrambot.command.handler.impl.CallbackQueryHandler;
-import ru.bsc.newteam4.telegrambot.command.handler.impl.CommandHandler;
-import ru.bsc.newteam4.telegrambot.command.handler.impl.DefaultHandler;
-import ru.bsc.newteam4.telegrambot.command.handler.impl.PlainMessageHandler;
+import ru.bsc.newteam4.telegrambot.command.handler.impl.*;
 import ru.bsc.newteam4.telegrambot.command.resolver.impl.DefaultUpdateHandlerResolver;
 import ru.bsc.newteam4.telegrambot.config.ApplicationProperties;
 import ru.bsc.newteam4.telegrambot.config.loader.PropertiesLoader;
@@ -26,7 +23,7 @@ public class Application {
             ApplicationProperties properties = PropertiesLoader.loadProperties("properties.yaml", ApplicationProperties.class);
             final TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
             final DefaultBotOptions options = new DefaultBotOptions();
-            options.setAllowedUpdates(List.of("message", "callback_query", "channel_post"));
+            options.setAllowedUpdates(List.of("message", "callback_query", "channel_post", "my_chat_member", "chat_join_request"));
 
             final Map<Long, PublishContext> readyChatsToPublish = new HashMap<>();
             final KnowledgeRepository repository = new OnceKnowledgeRepository(properties.getStorageProperties());
@@ -38,6 +35,8 @@ public class Application {
                     new CallbackQueryHandler(properties.getTelegramProperties(), repository, readyChatsToPublish),
                     new CommandHandler(properties.getTelegramProperties().getMenu(), readyChatsToPublish),
                     new PlainMessageHandler(readyChatsToPublish, repository, properties.getTelegramProperties()),
+                    new ChatStatusUpdateHandler(),
+                    new JoinRequestUpdateHandler(),
                     new DefaultHandler()
                 ))
             );

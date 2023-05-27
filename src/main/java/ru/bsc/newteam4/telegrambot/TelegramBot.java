@@ -6,8 +6,14 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.CreateChatInviteLink;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.ChatInviteLink;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
+import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMemberLeft;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -20,18 +26,18 @@ import java.util.List;
 
 @Slf4j
 public class TelegramBot extends TelegramLongPollingBot {
-    private final String botName;
+    private final TelegramProperties properties;
     private final UpdateHandlerResolver resolver;
 
     public TelegramBot(DefaultBotOptions options, TelegramProperties properties, UpdateHandlerResolver resolver) {
         super(options, properties.getToken());
-        this.botName = properties.getBotName();
+        this.properties = properties;
         this.resolver = resolver;
     }
 
     @Override
     public String getBotUsername() {
-        return botName;
+        return properties.getBotName();
     }
 
     @Override
@@ -64,6 +70,27 @@ public class TelegramBot extends TelegramLongPollingBot {
                     execute(photo);
                 }
             }
+
+            final Long userId = extractUserId(update);
+            final Long chatId = extractChatId(update);
+            if (properties.getDiscussionChannel() != null && userId != null && chatId != null) {
+                final ChatMember member = execute(new GetChatMember(properties.getDiscussionChannel().toString(), userId));
+                if (member instanceof ChatMemberLeft) {
+                    final CreateChatInviteLink createChatInviteLink = CreateChatInviteLink.builder()
+                        .chatId(properties.getDiscussionChannel())
+                        .createsJoinRequest(true)
+                        .build();
+                    final ChatInviteLink inviteLink = execute(createChatInviteLink);
+                    if (inviteLink != null) {
+                        final SendMessage sendMessage = SendMessage.builder()
+                            .chatId(chatId)
+                            .text("Пройди по ссылке %s для обсуждения постов".formatted(inviteLink.getInviteLink()))
+                            .protectContent(true)
+                            .build();
+                        execute(sendMessage);
+                    }
+                }
+            }
         } catch (TelegramApiException e) {
             log.error("Error handle update: {}", update, e);
         }
@@ -79,5 +106,25 @@ public class TelegramBot extends TelegramLongPollingBot {
             final T value = (T) execute(photo);
             method.callback(this, value);
         }
+    }
+
+    private Long extractUserId(Update update) {
+        if (update.getMessage() != null) {
+            return update.getMessage().getFrom().getId();
+        }
+        if (update.getCallbackQuery() != null) {
+            return update.getCallbackQuery().getFrom().getId();
+        }
+        return null;
+    }
+
+    private Long extractChatId(Update update) {
+        if (update.getMessage() != null) {
+            return update.getMessage().getChat().getId();
+        }
+        if (update.getCallbackQuery() != null) {
+            return update.getCallbackQuery().getMessage().getChat().getId();
+        }
+        return null;
     }
 }

@@ -4,6 +4,7 @@ telegramProperties:
   botName: test-bot
   token:
   countToShow: 2
+  discussionChannel:
   menu:
     message: 'Категории'
     publishHeaderMessage: 'Меню публикации'

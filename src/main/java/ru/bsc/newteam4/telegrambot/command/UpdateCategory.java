@@ -4,5 +4,7 @@ public enum UpdateCategory {
     DEFAULT,
     COMMAND,
     CALLBACK_QUERY,
-    PLAIN_MESSAGE
+    PLAIN_MESSAGE,
+    CHAT_STATUS,
+    JOIN_REQUEST
 }
