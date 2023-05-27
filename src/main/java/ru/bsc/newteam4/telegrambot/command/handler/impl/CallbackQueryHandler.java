@@ -73,6 +73,15 @@ public class CallbackQueryHandler implements UpdateHandler {
                             case BY_LIKES -> repository.getBestByCategory(category);
                             case BY_TIME -> repository.getNewestByCategory(category);
                         };
+                        if (knowledge.size() == 0) {
+                            return List.of(
+                                answerCallbackQuery,
+                                SendMessage.builder()
+                                    .chatId(query.getMessage().getChatId())
+                                    .text("В этом разделе пока пусто, напиши свой пост, чтобы заполинить его ✍️")
+                                    .build()
+                            );
+                        }
                         if (knowledge.size() >= properties.getCountToShow()) {
                             final List<List<InlineKeyboardButton>> keyboard = knowledge.stream()
                                 .map(k -> InlineKeyboardButton.builder()
