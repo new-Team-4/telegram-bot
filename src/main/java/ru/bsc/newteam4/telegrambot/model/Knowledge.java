@@ -20,6 +20,7 @@ public class Knowledge {
     private String id;
     private Long authorId;
     private Category category;
+    private KnowledgeStatus status;
     private String text;
     private String imageId;
     private List<MessageEntity> messageEntities;

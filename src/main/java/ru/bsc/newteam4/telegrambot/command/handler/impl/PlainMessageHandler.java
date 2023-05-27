@@ -14,6 +14,7 @@ import ru.bsc.newteam4.telegrambot.command.UpdateCategory;
 import ru.bsc.newteam4.telegrambot.command.handler.UpdateHandler;
 import ru.bsc.newteam4.telegrambot.config.TelegramProperties;
 import ru.bsc.newteam4.telegrambot.model.Knowledge;
+import ru.bsc.newteam4.telegrambot.model.KnowledgeStatus;
 import ru.bsc.newteam4.telegrambot.model.PublishContext;
 import ru.bsc.newteam4.telegrambot.model.TransformContext;
 import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
@@ -49,6 +50,7 @@ public class PlainMessageHandler implements UpdateHandler {
                 knowledge.setCategory(context.getCategory());
             }
             knowledge.setAuthorId(userId);
+            knowledge.setStatus(KnowledgeStatus.PUBLISHED);
             if (message.getPhoto() != null && message.getPhoto().size() > 0) {
                 final PhotoSize photo = message.getPhoto()
                     .stream()
