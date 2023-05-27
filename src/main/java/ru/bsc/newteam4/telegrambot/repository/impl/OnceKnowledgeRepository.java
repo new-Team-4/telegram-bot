@@ -13,14 +13,10 @@ import ru.bsc.newteam4.telegrambot.repository.KnowledgeRepository;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
-import static java.util.Comparator.comparingLong;
 
 @RequiredArgsConstructor
 public class OnceKnowledgeRepository implements KnowledgeRepository {
@@ -68,13 +64,14 @@ public class OnceKnowledgeRepository implements KnowledgeRepository {
         return storage.values()
             .stream()
             .filter(knowledge -> keywords.stream().anyMatch(kw -> knowledge.getText().contains(kw)))
+            .sorted(Comparator.comparingLong((Knowledge k) -> k.getUsersAlreadyLikeKnowledge().size()).reversed())
             .collect(Collectors.toList());
     }
 
     @Override
     public List<Knowledge> getBestByCategory(Category category) {
         return getByCategory(category).stream()
-            .sorted(comparingLong(k -> k.getUsersAlreadyLikeKnowledge().size()))
+            .sorted(Comparator.comparingLong((Knowledge k) -> k.getUsersAlreadyLikeKnowledge().size()).reversed())
             .collect(Collectors.toList());
     }
 
